@@ -41,6 +41,14 @@ The first run builds locally and takes a few minutes. Then open http://localhost
 - If Binance is unreachable where you are (the top bar keeps saying "connecting"), create a `.env` file containing `MARKET_SOURCE=sim` and run the command again to explore with simulated prices.
 - Stop: `docker compose down` (data is kept). Upgrade: `git pull`, then `docker compose up -d` (it always rebuilds from the current code).
 
+**On a cloud server**: by default the web page only opens on the server itself (nothing is exposed, which is the safest setup). Open an SSH tunnel from your own computer:
+
+```bash
+ssh -L 8080:127.0.0.1:8080 your-user@server-ip
+```
+
+Keep that window open and browse to http://localhost:8080 on your computer. To open it by domain name without a tunnel (on a phone, for example), read "Security" below first: set up HTTPS and a domain, then change `QS_BIND`, `ALLOWED_ORIGINS` and `SITE_DOMAIN`.
+
 To change the port, send mail from your own mailbox, use Telegram, or connect Binance, see "Configuration" below. Outgoing mail, AI review, Telegram and data source keys can also be set without editing files: sign in and fill them in under System settings on the System page (the gear at the top right); they take effect on save, and each group has a Test button. See also the [FAQ](docs/faq.en.md).
 
 The interface is available in Chinese and English (switch under Account → Language).
