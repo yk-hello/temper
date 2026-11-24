@@ -1,0 +1,62 @@
+# 自动测试：每次推送到 main、每个合并请求都跑一遍后端测试（连一个临时数据库）和前端的类型检查、构建。
+# 仓库是私有的时候整个跳过（不占 GitHub Actions 的额度）；公开以后自动生效。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: qs
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: qs_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U qs -d qs_test"
+          --health-interval 5s --health-timeout 3s --health-retries 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: gofmt
+        run: |
+          out="$(gofmt -l .)"
+          if [ -n "$out" ]; then echo "没有用 gofmt 排版的文件："; echo "$out"; exit 1; fi
+      - run: go vet ./...
+      - name: go test（带竞态检查；用数据库的测试会建表、删表，只连这个临时库）
+        env:
+          QS_TEST_DB: postgres://qs:test@localhost:5432/qs_test?sslmode=disable
+        run: go test -race -count=1 -p 1 ./...
+
+  web:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit -p .
+      - run: npx vite build

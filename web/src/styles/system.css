@@ -1,0 +1,11 @@
+/* 系统控制台（可视化 11） */
+.sy { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--void); }
+.sy-map { flex: 1; min-height: 0; position: relative; }
+.sy-map canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sy-strip { flex: none; display: flex; align-items: center; gap: 28px; padding: 6px 16px; min-height: 40px; background: var(--chassis); box-shadow: inset 0 var(--hair) 0 var(--rule); white-space: nowrap; overflow: hidden; }
+.sy-strip span { display: inline-flex; flex-direction: column; }
+.sy-strip i { font-style: normal; font-size: 12px; line-height: 16px; color: var(--t3); }
+.sy-strip b { font-size: 13px; line-height: 18px; font-weight: 450; color: var(--t1); font-variant-numeric: tabular-nums; }
+.sy-strip em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--t3); overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 900px) { .sy-strip em { display: none; } .sy-strip { gap: 18px; } }
+@media (max-width: 520px) { .sy-strip span:nth-child(n + 4) { display: none; } }

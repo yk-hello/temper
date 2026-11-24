@@ -1,0 +1,49 @@
+/* 未登录第一屏：全屏地形。画面从边到边，文字压在左下角。 */
+.hero { position: relative; height: 100dvh; overflow: hidden; background: #000; color: var(--t1); }
+.hero-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.hero-gl:active { cursor: grabbing; }
+
+/* 顶栏透明，开场结束才出现 */
+.hero-bar { position: absolute; left: 0; right: 0; top: 0; z-index: 3; opacity: 0; pointer-events: none; transition: opacity 500ms var(--ease-out); }
+.hero-bar.on { opacity: 1; pointer-events: auto; }
+.hero-bar .bar { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0)); box-shadow: none; border: 0; }
+
+@keyframes hero-line { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+.hero-copy { position: absolute; left: 24px; bottom: 22px; right: 24px; z-index: 2; opacity: 0; transform: translateY(6px); pointer-events: none; transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out); }
+.hero-copy.on { opacity: 1; transform: none; }
+.hero-copy.on > * { pointer-events: auto; }
+.hero-price { display: flex; align-items: baseline; gap: 12px; pointer-events: none !important; }
+.hero-price span { font-size: 13px; font-weight: 500; letter-spacing: 0.04em; color: var(--t2); }
+.hero-price b { font-family: var(--font-ui); font-weight: 300; font-size: clamp(30px, min(9vh, 13vw), 84px); line-height: 1.05; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 0 28px rgba(0, 0, 0, 0.9); }
+.hero-line { margin: 6px 0 12px; max-width: 620px; font-size: 14px; line-height: 21px; color: var(--t1); text-shadow: 0 0 12px rgba(0, 0, 0, 0.95); pointer-events: none !important; }
+.hero-acts { display: flex; align-items: center; gap: 18px; }
+.hero-link { padding: 0; border: 0; background: none; font: inherit; font-size: 13px; color: var(--t2); text-decoration: none; cursor: pointer; text-shadow: 0 0 10px #000; }
+.hero-link:hover { color: #fff; }
+.hero-risk { margin: 12px 0 0; font-size: 11.5px; line-height: 16px; color: var(--t3); text-shadow: 0 0 8px #000; pointer-events: none !important; }
+
+.hero-read { position: absolute; left: 0; top: 0; z-index: 2; padding: 3px 7px; font-size: 12px; font-variant-numeric: tabular-nums; color: #fff; background: rgba(0, 0, 0, 0.82); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); white-space: nowrap; pointer-events: none; }
+.hero-read:empty { display: none; }
+
+.hero.leaving .hero-copy, .hero.leaving .hero-bar { opacity: 0; transition-duration: 220ms; }
+
+@media (max-width: 760px) {
+  .hero-copy { left: 14px; right: 14px; bottom: 14px; }
+  .hero-line { font-size: 13px; line-height: 19px; }
+}
+@media (max-height: 480px) {
+  .hero-line, .hero-risk { display: none; }
+  .hero-price b { font-size: 34px; }
+  .hero-acts { margin-top: 6px; }
+}
+
+/* 地形铺满屏幕后，字直接压在山上。底部和顶部压暗一点，字才读得清 */
+.hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.82) 0, rgba(0, 0, 0, 0.55) 18%, rgba(0, 0, 0, 0) 44%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0, rgba(0, 0, 0, 0) 90px);
+}
+
+.hero-acts .home-switch { display: inline-flex; }
+.home-switch .seg { height: 28px; background: rgba(0, 0, 0, 0.55); }

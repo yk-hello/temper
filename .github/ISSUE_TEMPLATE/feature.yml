@@ -1,0 +1,20 @@
+name: 想要的功能 / Feature request
+description: 想加什么、为什么 / What you would like and why
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        不会做的：收费、分成、返佣、带单、内置"我们的策略"、替你做买卖判断、提现和划转。见 CONTRIBUTING.md。
+        Out of scope: payments, profit sharing, referrals, signal selling, built-in strategies, buy/sell calls, withdrawals and transfers. See CONTRIBUTING.md.
+  - type: textarea
+    id: need
+    attributes:
+      label: 你想做到什么 / What you want to achieve
+      description: 先说要解决的事，再说你想到的做法 / The problem first, then your idea
+    validations:
+      required: true
+  - type: textarea
+    id: now
+    attributes:
+      label: 现在怎么做 / How you do it today

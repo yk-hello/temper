@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "qsig/1 消息",
+  "oneOf": [
+    { "$ref": "#/$defs/signal" },
+    { "$ref": "#/$defs/heartbeat" },
+    { "$ref": "#/$defs/halt" }
+  ],
+  "$defs": {
+    "ts": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "uuid": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" },
+    "common": {
+      "type": "object",
+      "required": ["protocol", "type", "id", "strategy_id", "strategy_version", "issued_at"],
+      "properties": {
+        "protocol": { "const": "qsig/1" },
+        "id": { "$ref": "#/$defs/uuid" },
+        "strategy_id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "strategy_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "issued_at": { "$ref": "#/$defs/ts" }
+      }
+    },
+    "signal": {
+      "allOf": [{ "$ref": "#/$defs/common" }],
+      "required": ["data_as_of", "valid_until", "mode", "targets"],
+      "properties": {
+        "type": { "const": "signal" },
+        "data_as_of": { "$ref": "#/$defs/ts" },
+        "valid_until": { "$ref": "#/$defs/ts" },
+        "mode": { "enum": ["partial", "snapshot"] },
+        "targets": { "type": "array", "minItems": 1, "maxItems": 50, "items": { "$ref": "#/$defs/target" } },
+        "meta": { "type": "object" }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": ["instrument", "weight", "confidence", "horizon_min", "ref_price", "ref_price_source", "rationale"],
+      "properties": {
+        "instrument": { "type": "string", "pattern": "^[A-Z0-9]{2,20}-PERP$" },
+        "weight": { "type": "string", "pattern": "^-?(0(\\.\\d{1,4})?|1(\\.0{1,4})?)$" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "horizon_min": { "type": "integer", "minimum": 5, "maximum": 10080 },
+        "ref_price": { "type": "string", "pattern": "^\\d+(\\.\\d+)?$" },
+        "ref_price_source": { "enum": ["binance_usdm_last"] },
+        "execution": {
+          "type": "object",
+          "properties": {
+            "urgency": { "enum": ["passive", "normal", "immediate"] },
+            "max_slippage_bps": { "type": "integer", "minimum": 1, "maximum": 200 }
+          }
+        },
+        "exits": {
+          "type": "object",
+          "properties": {
+            "stop_loss_pct": { "type": "string", "pattern": "^0\\.\\d{1,4}$" },
+            "take_profit_pct": { "type": "string", "pattern": "^\\d(\\.\\d{1,4})?$" }
+          }
+        },
+        "rationale": { "$ref": "#/$defs/rationale" }
+      }
+    },
+    "rationale": {
+      "type": "object",
+      "required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "object",
+          "required": ["zh"],
+          "properties": {
+            "zh": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "en": { "type": "string", "maxLength": 240 }
+          }
+        },
+        "factors": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "required": ["key", "score"],
+            "properties": {
+              "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,39}$" },
+              "label": { "type": "string", "maxLength": 20 },
+              "score": { "type": "number", "minimum": -1, "maximum": 1 }
+            }
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "required": ["kind", "title"],
+            "properties": {
+              "kind": { "enum": ["news", "tweet", "onchain", "market", "macro", "other"] },
+              "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+              "source": { "type": "string", "maxLength": 60 },
+              "url": { "type": "string", "format": "uri" },
+              "published_at": { "$ref": "#/$defs/ts" },
+              "excerpt": { "type": "string", "maxLength": 200 }
+            }
+          }
+        }
+      }
+    },
+    "heartbeat": {
+      "allOf": [{ "$ref": "#/$defs/common" }],
+      "required": ["status"],
+      "properties": {
+        "type": { "const": "heartbeat" },
+        "status": { "enum": ["ok", "degraded", "paused"] },
+        "note": { "type": "string", "maxLength": 200 }
+      }
+    },
+    "halt": {
+      "allOf": [{ "$ref": "#/$defs/common" }],
+      "required": ["action", "reason"],
+      "properties": {
+        "type": { "const": "halt" },
+        "action": { "enum": ["flatten_all", "pause"] },
+        "reason": {
+          "type": "object",
+          "required": ["zh"],
+          "properties": { "zh": { "type": "string", "minLength": 1, "maxLength": 200 } }
+        }
+      }
+    }
+  }
+}

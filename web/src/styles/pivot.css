@@ -1,0 +1,94 @@
+/* 复盘"自由透视"（18 第 10.5 条）：Perspective 自带 Pro Dark 主题，这里把颜色、字体换成我们的 */
+.pv { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.pv-bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: var(--hair) solid var(--rule); }
+.pv-lead { font-size: 12.5px; color: var(--t2); }
+.pv-presets { margin-left: auto; display: flex; flex-wrap: wrap; gap: 4px; }
+.pv-presets .btn.on { color: var(--t1); background: var(--press); }
+.pv-wait { margin: 14px; font-size: 13px; }
+.pv-box { position: relative; flex: 1; min-height: 420px; }
+.pv-box[hidden] { display: none; }
+.pv-note { flex: none; margin: 0; padding: 8px 14px 12px; font-size: 11.5px; line-height: 17px; }
+
+perspective-viewer.pv-viewer[theme='Pro Dark'] {
+  position: absolute; inset: 0;
+  color: var(--t1);
+  font-family: var(--font-ui);
+  --interface-monospace--font-family: var(--font-code);
+  --root--background: var(--chassis);
+  --plugin--background: var(--void);
+  --icon--color: var(--t2);
+  --inactive--color: var(--t3);
+  --inactive--border-color: var(--rule-2);
+  --active--color: var(--white);
+  --select--background-color: var(--void);
+  --column-drop-container--background: transparent;
+  --rt-pos-cell--color: var(--up);
+  --rt-neg-cell--color: var(--down);
+  --d3fc-gridline--color: var(--rule);
+  --d3fc-axis-ticks--color: var(--t3);
+  --d3fc-tooltip--background--color: #111113;
+  --d3fc-tooltip--color: var(--t1);
+  --d3fc-tooltip--border-color: var(--rule-2);
+}
+
+/* Perspective 自带的中文是机器翻的（"订购依据""和酒吧"），这里自己写一套，只在界面是中文时生效 */
+html[lang='zh-CN'] perspective-viewer,
+html[lang='zh-CN'] perspective-dropdown {
+  --group-by-label--content: "分组";
+  --split-by-label--content: "横向拆开";
+  --sort-label--content: "排序";
+  --filter-label--content: "筛选";
+  --transpose-button--content: "互换";
+  --config-button-icon--content: "设置";
+  --all-columns-label--content: "全部列";
+  --untitled--content: "未命名";
+  --plugin-name-datagrid--content: "表格";
+  --column-selector-column-columns--content: "显示的列";
+  --add-expression-button--content: "新建计算列";
+  --no-results--content: "没有这一列";
+  --datagrid-column-edit-button--content: "格式";
+  --copy-button--content: "复制";
+  --export-button--content: "导出";
+  --reset-button--content: "重置";
+  --edit-mode--read-only--content: "只读";
+  --edit-mode--edit--content: "改文字";
+  --edit-mode--select-row--content: "选整行";
+  --edit-mode--select-column--content: "选整列";
+  --edit-mode--select-region--content: "选区域";
+  --scroll-lock-toggle--content: "自由滚动";
+  --scroll-lock-alt-toggle--content: "对齐滚动";
+  --color-label--content: "颜色";
+  --format-label--content: "格式";
+  --timezone-label--content: "时区";
+  --date-style-label--content: "日期样式";
+  --time-style-label--content: "时间样式";
+  --foreground-label--content: "文字颜色";
+  --background-label--content: "背景颜色";
+  --series-label--content: "系列";
+  --color-range-label--content: "颜色范围";
+  --style-label--content: "样式";
+  --minimum-integer-digits-label--content: "最少整数位";
+  --rounding-increment-label--content: "舍入步长";
+  --notation-label--content: "记数法";
+  --use-grouping-label--content: "千位分隔";
+  --sign-display-label--content: "正负号";
+  --aggregate-depth-label--content: "汇总层级";
+  --max-value-label--content: "最大值";
+  --rounding-priority-label--content: "舍入优先";
+  --rounding-mode-label--content: "舍入方式";
+  --trailing-zero-display-label--content: "末尾的 0";
+  --fractional-digits-label--content: "小数位";
+  --significant-digits-label--content: "有效数字";
+  --year-label--content: "年";
+  --month-label--content: "月";
+  --day-label--content: "日";
+  --weekday-label--content: "星期";
+  --hour-label--content: "时";
+  --minute-label--content: "分";
+  --second-label--content: "秒";
+  --fractional-seconds-label--content: "毫秒";
+  --hours-label--content: "12/24 小时";
+  --style-tab-label--content: "样式";
+  --attributes-tab-label--content: "属性";
+  --debug-tab-label--content: "配置 JSON";
+}

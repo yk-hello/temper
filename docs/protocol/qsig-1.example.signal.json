@@ -1,0 +1,34 @@
+{
+  "protocol": "qsig/1",
+  "type": "signal",
+  "id": "5f0c1c2e-8a7b-4c1d-9e2f-3a4b5c6d7e8f",
+  "strategy_id": "news-alpha",
+  "strategy_version": "2026.11.03-a",
+  "issued_at": "2026-11-03T08:30:12.345Z",
+  "data_as_of": "2026-11-03T08:27:40.000Z",
+  "valid_until": "2026-11-03T08:31:12.345Z",
+  "mode": "partial",
+  "targets": [
+    {
+      "instrument": "BTC-PERP",
+      "weight": "0.2",
+      "confidence": 0.72,
+      "horizon_min": 240,
+      "ref_price": "68250.5",
+      "ref_price_source": "binance_usdm_last",
+      "execution": { "urgency": "normal", "max_slippage_bps": 20 },
+      "exits": { "stop_loss_pct": "0.02", "take_profit_pct": "0.05" },
+      "rationale": {
+        "summary": { "zh": "ETF 连续三日净流入，空头资金费率偏高，短线挤空概率大" },
+        "factors": [
+          { "key": "etf_flow", "label": "ETF 资金流", "score": 0.8 },
+          { "key": "funding_rate", "label": "资金费率", "score": 0.4 }
+        ],
+        "evidence": [
+          { "kind": "news", "title": "……", "source": "……", "url": "https://example.com/a", "published_at": "2026-11-03T08:05:00.000Z" }
+        ]
+      }
+    }
+  ],
+  "meta": { "model": "……", "prompt_version": "p17", "latency_ms": { "llm": 41000, "total": 152345 }, "cost_usd": "0.031" }
+}

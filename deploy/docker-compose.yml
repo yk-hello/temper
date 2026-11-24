@@ -1,0 +1,111 @@
+# 一键启动：数据库 + 后端 + 前端。用法见根目录 README.md。
+name: qs
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: qs
+      POSTGRES_PASSWORD: qs_local_dev   # 仅本机开发用；上云时换成强密码并放进 .env
+      POSTGRES_DB: qs
+    volumes:
+      - qs-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qs -d qs"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  backend:
+    # 开发模式（D69）：直接从文件夹里的源码编译运行，Claude 改完代码自己触发重载，不用再双击 start.bat。
+    # 上线正式环境时：删掉 image / working_dir / command / 两个 volumes 里的 /src 和 go 缓存，改回下面这行
+    # build: ../backend
+    image: golang:1.25-alpine
+    working_dir: /src
+    command: ["sh", "/backend-dev.sh"]
+    volumes:
+      - ../backend:/src
+      - ./backend-dev.sh:/backend-dev.sh:ro
+      - qs-gocache:/root/.cache/go-build
+      - qs-gomod:/go/pkg/mod
+      - qs-data:/data   # 主密钥文件（没写 QS_MASTER_KEY 时第一次启动自动生成）
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/api/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 180s
+    environment:
+      CGO_ENABLED: "0"
+      GOFLAGS: "-buildvcs=false"
+      DATABASE_URL: postgres://qs:qs_local_dev@db:5432/qs?sslmode=disable
+      MARKET_SOURCE: ${MARKET_SOURCE:-binance}   # binance = 真实行情；sim = 模拟行情
+      BRAND_NAME: ${BRAND_NAME:-Temper}          # 产品名（决策 D110）
+      QSIG_KEYS: ${QSIG_KEYS:-}                  # 策略密钥 "key_id:secret:strategy_id;..."（也可以在界面上自助建，见 docs/strategies.md）
+      QS_SIGNUP: ${QS_SIGNUP:-closed}             # open = 第一个账号以后别人也能自己注册；默认关（D104，"系统"页里可以改）
+      DEMO_STRATEGY: ${DEMO_STRATEGY:-0}         # 1 = 后端内部跑一个随机信号的示例策略 demo-random，只用于测试链路；默认关
+      HYPERLIQUID: ${HYPERLIQUID:-1}             # 1 = 同时接入 Hyperliquid 行情
+      ALLOWED_ORIGINS: "localhost:*,127.0.0.1:*"
+      AI_FORMAT: ${AI_FORMAT:-}                  # anthropic = Claude 自己的接口；空 = OpenAI 兼容（D104；"系统"页的系统设置里填的优先）
+      AI_API_KEY: ${AI_API_KEY:-}                # AI 复盘点评，配了就优先用；放在 deploy/.env，不进仓库
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}    # AI 复盘点评（D85），放在 deploy/.env，不进仓库
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-} # Telegram 通知（D85），放在 deploy/.env，不进仓库
+      QS_MASTER_KEY: ${QS_MASTER_KEY:-}          # 实盘（D89）：加密交易所密钥、策略密钥、系统设置里密钥的主密钥（32 字节 base64），放在 deploy/.env，不进仓库
+      QS_MASTER_KEY_FILE: /data/master.key       # 没写 QS_MASTER_KEY 时：第一次启动自动生成，存在 qs-data 卷里（11-15：以前不写就接不了交易所、建不了策略）
+      BINANCE_API_KEY: ${BINANCE_API_KEY:-}      # 可选：读真实的保证金分档（只读）；放在 deploy/.env，不进仓库
+      BINANCE_API_SECRET: ${BINANCE_API_SECRET:-}
+      QS_LIVE_MAIN: ${QS_LIVE_MAIN:-1}           # 0 = 不允许接币安正式环境（只留测试网）
+      QS_LIVE_TESTNET: ${QS_LIVE_TESTNET:-1}     # 0 = 不显示币安模拟交易（原来的合约测试网）
+      AUTH_DEV: ${AUTH_DEV:-}                    # 空 = 自动：没配发信邮箱时开（验证码显示在页面上），配了就关；1 / 0 = 强制开 / 关
+      SMTP_HOST: ${SMTP_HOST:-}                  # 发信邮箱（D100）：用你自己的邮箱发验证码和通知，例如 smtp.gmail.com；放在 deploy/.env，不进仓库
+      SMTP_PORT: ${SMTP_PORT:-465}               # 465（TLS）或 587（STARTTLS）
+      SMTP_USER: ${SMTP_USER:-}                  # 登录发信服务器的账号，一般就是邮箱地址
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}          # 授权码（在邮箱设置里开 SMTP 后拿到的，不是登录密码）
+      MAIL_FROM: ${MAIL_FROM:-}                  # 发件地址，不填用 SMTP_USER
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}        # 发件人显示的名字，不填用产品名
+      SITE_DOMAIN: ${SITE_DOMAIN:-}              # 对外的域名（钱包登录的签名消息要校验它）
+      QS_WEBHOOK_PRIVATE: ${QS_WEBHOOK_PRIVATE:-0} # 1 = 对外 Webhook 允许发到本机和内网（只在自己内网部署时开）
+      NEWS_FEEDS: ${NEWS_FEEDS:-}                # 新闻标题（18 第 8.6 条）：空 = 默认的公开 RSS；off = 不取
+      X_BEARER_TOKEN: ${X_BEARER_TOKEN:-}        # 可选：X 官方接口的 token（部署的人自己的）；放在 deploy/.env，不进仓库
+      X_ACCOUNTS: ${X_ACCOUNTS:-}                # 要看的 X 账号，逗号隔开
+      NEWS_NOTICES: ${NEWS_NOTICES:-on}          # off = 不取 Bybit、OKX 的官方公告（D102）
+      FRED_API_KEY: ${FRED_API_KEY:-}            # 可选：FRED 免费密钥，经济日历自动更新、宏观数字（D102）；放在 deploy/.env，不进仓库
+      LIQ_FEEDS: ${LIQ_FEEDS:-on}                # off = 不连 Bybit、OKX 的全量强平推送
+      QS_LIMIT_PAPER_ACCOUNTS: ${QS_LIMIT_PAPER_ACCOUNTS:-}
+      QS_LIMIT_BACKTEST_DAYS: ${QS_LIMIT_BACKTEST_DAYS:-}
+      QS_LIMIT_BACKTEST_INSTRUMENTS: ${QS_LIMIT_BACKTEST_INSTRUMENTS:-}
+      QS_LIMIT_BACKTEST_SIGNALS: ${QS_LIMIT_BACKTEST_SIGNALS:-}
+      QS_LIMIT_STRATEGIES: ${QS_LIMIT_STRATEGIES:-}
+      QS_LIMIT_API_KEYS: ${QS_LIMIT_API_KEYS:-}
+      QS_LIMIT_PRICE_ALERTS: ${QS_LIMIT_PRICE_ALERTS:-}
+      QS_LIMIT_RULES: ${QS_LIMIT_RULES:-}
+      QS_LIMIT_SHOT_MB: ${QS_LIMIT_SHOT_MB:-}
+      QS_LIMIT_SHOTS_TOTAL_MB: ${QS_LIMIT_SHOTS_TOTAL_MB:-}
+      QS_LIMIT_SIGNUP_PER_IP_HOUR: ${QS_LIMIT_SIGNUP_PER_IP_HOUR:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build: ../web
+    volumes:
+      # 开发模式：web/live 里有新版页面时优先用它（Claude 改完界面直接放进去，刷新浏览器即生效）
+      - ../web/live:/srv/live:ro
+      # nginx 配置也挂进来：改了以后 docker exec qs-web-1 nginx -s reload 就生效，不用重建镜像
+      - ../web/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "${QS_BIND:-127.0.0.1}:${QS_PORT:-8080}:80"   # 默认只允许本机访问（QS_BIND=127.0.0.1），局域网里的其他设备连不进来；端口 QS_PORT 默认 8080
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  qs-db:
+  qs-data:
+  qs-gocache:
+  qs-gomod:

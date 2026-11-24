@@ -1,0 +1,77 @@
+/* 组件展厅页面布局 */
+.sr { padding: 0 32px 96px; max-width: 1680px; width: 100%; }
+.sr-intro { padding: 56px 0 40px; display: grid; gap: 12px; max-width: 720px; }
+.sr-intro h1 { font-size: 24px; line-height: 32px; font-weight: 500; letter-spacing: -0.01em; }
+.sr-intro p { color: var(--t2); font-size: 13px; line-height: 22px; }
+
+.sr-sec { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 40px; padding: 32px 0 40px; border-top: var(--hair) solid var(--rule); }
+.sr-side h2 { font-size: 15px; line-height: 22px; font-weight: 550; }
+.sr-side p { margin-top: 8px; font-size: 13px; line-height: 21px; color: var(--t3); }
+.sr-main { min-width: 0; display: grid; gap: 20px; align-content: start; }
+
+/* 字号 */
+.fontlab { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 12px; }
+.type-scale { display: grid; }
+.type-row { display: grid; grid-template-columns: 72px minmax(0, 1fr) 140px; align-items: baseline; gap: 16px; padding: 14px 0; border-bottom: var(--hair) solid var(--rule); }
+.type-row:first-child { border-top: var(--hair) solid var(--rule); }
+.type-meta { font-size: 12px; color: var(--t3); }
+.type-sample { min-width: 0; overflow-wrap: anywhere; }
+.type-note { font-size: 12px; color: var(--t3); text-align: right; }
+
+/* 颜色 */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 20px 16px; }
+.sw { display: grid; gap: 4px; font-size: 12px; }
+.sw i { display: block; height: 40px; box-shadow: inset 0 0 0 var(--hair) var(--rule-2); margin-bottom: 4px; }
+
+/* 锐利度测试 */
+.sr-test { height: 132px; box-shadow: 0 0 0 var(--hair) var(--rule); }
+
+/* 读数 */
+.inst { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 48px; align-items: end; padding: 24px; background: var(--void); box-shadow: 0 0 0 var(--hair) var(--rule); }
+.inst-id { display: grid; gap: 12px; }
+.inst-id > div:first-child { display: flex; gap: 10px; align-items: baseline; font-size: 12px; }
+.inst-id .sym { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+.inst-price { display: flex; align-items: baseline; gap: 16px; }
+.inst-ro { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 16px 24px; }
+
+/* 控件 */
+.ctl-grid { display: grid; gap: 24px; }
+.ctl-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.ctl-rulers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
+.ctl-rulers .field > span { display: flex; justify-content: space-between; }
+
+/* 图表 */
+.sr-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hair); background: var(--rule); box-shadow: 0 0 0 var(--hair) var(--rule); }
+.sr-chart { height: 320px; }
+.sr-spectrum { height: 600px; box-shadow: 0 0 0 var(--hair) var(--rule); }
+.sr-table { overflow-x: auto; box-shadow: 0 0 0 var(--hair) var(--rule); }
+
+/* 隐藏金额 */
+.mask-demo { display: grid; gap: 20px; padding: 24px; background: var(--void); box-shadow: 0 0 0 var(--hair) var(--rule); }
+.mask-ro { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+
+@media (max-width: 1100px) {
+  .sr-sec { grid-template-columns: 1fr; gap: 20px; }
+  .sr-charts { grid-template-columns: 1fr; }
+  .inst { grid-template-columns: 1fr; gap: 24px; }
+}
+@media (max-width: 760px) {
+  .sr { padding: 0 16px 64px; }
+  .sr-intro { padding: 32px 0 24px; }
+  .sr-opt, .tbl .opt { display: none; }
+  .ctl-rulers { grid-template-columns: 1fr; gap: 24px; }
+  .type-row { grid-template-columns: 1fr; gap: 4px; }
+  .type-note { text-align: left; }
+  .sr-chart { height: 260px; }
+  .sr-spectrum { height: 480px; }
+  .mask-ro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inst { padding: 16px; }
+  .price-xl { font-size: 36px; line-height: 40px; }
+}
+
+.mask-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; font-size: 12px; }
+.sr-spectrum .display-head { height: auto; min-height: 36px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+.sr-chart-wide { grid-column: 1 / -1; height: 400px; }
+.head-ruler { width: 280px; height: 34px; }
+.head-ruler .ruler { height: 34px; min-width: 0; }
+@media (max-width: 760px) { .head-ruler { width: auto; flex: 1; min-width: 0; } .sr-chart-wide { height: 340px; } }

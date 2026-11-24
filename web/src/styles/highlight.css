@@ -1,0 +1,60 @@
+/* 高光（D91）：生涯档案、视频对话框、顶部提示。金色只在这里用（D21） */
+
+/* ---------- 生涯档案 ---------- */
+.hl { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--void); }
+.hl-top { flex: none; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding: 8px 16px; box-shadow: inset 0 calc(-1 * var(--hair)) 0 var(--rule); font-size: 12.5px; color: var(--t2); }
+.hl-stats { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+.hl-stats span { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.hl-stats b { font-weight: 500; color: var(--t1); font-variant-numeric: tabular-nums; }
+.hl-min { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.hl-min-in { display: inline-flex; align-items: center; gap: 4px; color: var(--t1); }
+.hl-min-in input { width: 52px; height: 26px; padding: 0 6px; border: 0; border-radius: var(--radius); background: var(--void); color: var(--t1); font: inherit; font-variant-numeric: tabular-nums; text-align: right; box-shadow: inset 0 0 0 var(--hair) var(--rule-3); }
+.hl-min-in input:focus { outline: none; box-shadow: inset 0 0 0 1px var(--t2); }
+.hl-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--rule); align-content: start; }
+.hl-card { display: flex; flex-direction: column; background: var(--void); }
+.hl-card canvas { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; background: #050506; }
+.hl-card.focus { box-shadow: inset 0 0 0 1px var(--gold); }
+.hl-card-b { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; }
+.hl-card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.hl-card-h b { font-weight: 500; color: var(--t1); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hl-card-h span { color: var(--t3); white-space: nowrap; }
+.hl-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.hl-acts .rv-link { margin-left: auto; padding: 0; }
+.hl-meta { margin: 0; color: var(--t3); font-size: 12px; line-height: 18px; }
+.hl-dlg { margin: 0 0 16px; color: var(--t2); font-size: 13px; line-height: 20px; }
+.hl-dlg-acts { display: flex; justify-content: flex-end; gap: 8px; }
+@media (max-width: 560px) {
+  .hl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hl-min { margin-left: 0; }
+}
+
+/* ---------- 视频对话框 ---------- */
+.hl-film { display: flex; gap: 20px; align-items: stretch; }
+.hl-stage { position: relative; flex: none; width: min(300px, 46vw); aspect-ratio: 9 / 16; background: #050506; box-shadow: inset 0 0 0 var(--hair) var(--rule-2); overflow: hidden; }
+.hl-stage canvas, .hl-stage video { display: block; width: 100%; height: 100%; object-fit: contain; }
+.hl-busy { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 12px 12px; background: rgba(0, 0, 0, 0.85); color: var(--t1); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.hl-busy i { display: block; height: 2px; margin-top: 8px; background: var(--gold); transform-origin: left; transition: transform 160ms linear; }
+.hl-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.hl-side > .btn { align-self: flex-start; }
+.hl-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--t2); }
+.hl-check { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--t1); }
+.hl-err { margin: 0; color: var(--red); font-size: 12.5px; }
+@media (max-width: 560px) {
+  .hl-film { flex-direction: column; align-items: center; }
+  .hl-stage { width: min(240px, 70vw); }
+  .hl-side { width: 100%; }
+}
+
+/* ---------- 顶部提示：只亮一条（D91） ---------- */
+.hl-ping { position: fixed; z-index: 60; top: 48px; left: 0; right: 0; height: 34px; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 12px; background: #0b0a08; box-shadow: inset 0 calc(-1 * var(--hair)) 0 rgba(212, 179, 122, 0.55), inset 0 2px 0 var(--gold); font-size: 13px; animation: hl-drop 380ms var(--ease-out); }
+.hl-ping-k { color: var(--gold); font-weight: 500; white-space: nowrap; }
+.hl-ping-t { color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hl-ping-t b { font-weight: 500; color: var(--gold); font-variant-numeric: tabular-nums; }
+.hl-ping-go { border: 0; padding: 0; background: none; color: var(--t1); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
+.hl-ping-x { border: 0; background: none; color: var(--t3); font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.hl-ping-x:hover, .hl-ping-go:hover { color: var(--t1); }
+@keyframes hl-drop { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .hl-ping { animation: none; } }
+.hl-net { margin-left: 8px; font-size: 12px; font-weight: 500; }
+.hl-net.up { color: var(--up); }
+.hl-net.down { color: var(--down); }

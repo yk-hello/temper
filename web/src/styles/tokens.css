@@ -1,0 +1,85 @@
+/* 设计令牌 v3（2026-11-03 夜，决策 D34）。完全重做，以华硕 ProArt 的设计语言为出发点。
+
+   一、机身与屏幕
+       界面外壳（机身）是哑光石墨色；所有数据画面（屏幕）是纯黑，像嵌进机身的显示屏。
+       纯黑给灰阶热力图留出最大的亮度范围。
+   二、亮度表示多少，颜色只表示方向和警报
+       九成画面是灰阶。白色是唯一的强调色，只标记"当前、选中、刚变化"。
+       涨跌色只出现在涨跌数字和成交方向上。
+   三、一套刻度语言
+       坐标轴、旋钮、滑尺都用同一种主刻度和副刻度，全部对齐到物理像素。
+   四、对齐物理像素
+       发丝线永远是 1 个物理像素（由 JS 写入 --hair），在 1×、1.25×、1.5×、2× 下都锐利。 */
+:root {
+  /* 机身与屏幕 */
+  --void: #000000;          /* 数据屏幕 */
+  --chassis: #111113;       /* 外壳底色 */
+  --plate: #17171a;         /* 抬起的控件面 */
+  --hover: #1e1e22;
+  --press: #26262b;
+
+  /* 线 */
+  --hair: 1px;              /* 运行时改成 1/devicePixelRatio，保证正好 1 个物理像素 */
+  --rule: rgba(255, 255, 255, 0.085);
+  --rule-2: rgba(255, 255, 255, 0.15);
+  --rule-3: rgba(255, 255, 255, 0.28);
+  --bevel: rgba(255, 255, 255, 0.07);   /* 机身顶边的倒角高光 */
+
+  /* 文字：四级灰 */
+  --t1: #ededef;
+  --t2: #a3a3aa;
+  --t3: #6e6e76;
+  --t4: #48484e;
+  --white: #ffffff;
+
+  /* 含义色（低饱和） */
+  --green: #4cb98a;
+  --red: #e2625c;
+  --amber: #d4a44c;
+  --gold: #d4b37a;          /* 只属于高光时刻（D21） */
+  --up: var(--green);
+  --down: var(--red);
+
+  /* 字体。数字用 Geist 的等宽数字（tnum），代码、地址、时间戳才用 Geist Mono。
+     中文默认思源黑体（Noto Sans SC），对照测试见组件展厅。 */
+  --cjk: 'Noto Sans SC';
+  --font-ui: 'Geist Variable', var(--cjk), 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  --font-code: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* 字号阶梯（px）：11 只给坐标轴上的拉丁数字；中文最小 12 */
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-15: 15px;
+  --fs-18: 18px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+  --fs-48: 48px;
+
+  /* 间距：4 的倍数，主网格 8 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  --radius: 2px;            /* 控件的机加工倒角；数据屏幕是直角 */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-color-mode='red-up'] {
+  --up: var(--red);
+  --down: var(--green);
+}
+
+/* 字体对照测试用（组件展厅里切换），不是正式主题 */
+:root[data-cjk='yahei'] { --cjk: 'Microsoft YaHei UI'; }
+:root[data-latin='inter'] { --font-ui: 'Inter Variable', var(--cjk), 'PingFang SC', 'Microsoft YaHei UI', sans-serif; }
+:root[data-latin='plex'] { --font-ui: 'IBM Plex Sans', var(--cjk), 'PingFang SC', 'Microsoft YaHei UI', sans-serif; }
+
+/* 旧版（v2）行情页的变量别名，v3 重做行情页后删除 */
+:root { --bg: var(--chassis); --panel: var(--void); --line: var(--rule); --line-strong: var(--rule-2); --text-1: var(--t1); --text-2: var(--t2); --text-3: var(--t3); --accent: var(--white); --font-sans: var(--font-ui); --font-mono: var(--font-code); }

@@ -1,0 +1,39 @@
+/* v3 基础层：重置、字体、正文。 */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+html { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--chassis);
+  color: var(--t1);
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  line-height: 20px;
+  font-weight: 420;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 1px solid var(--white); outline-offset: 2px; }
+::selection { background: rgba(255, 255, 255, 0.22); }
+h1, h2, h3, h4, p { margin: 0; }
+
+/* 数字：等宽数字，不用等宽字体（数字更精致，列依然对齐） */
+.num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.code { font-family: var(--font-code); font-size: 12px; font-weight: 450; letter-spacing: -0.01em; }
+
+.t1 { color: var(--t1); }
+.t2 { color: var(--t2); }
+.t3 { color: var(--t3); }
+.t4 { color: var(--t4); }
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

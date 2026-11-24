@@ -1,0 +1,30 @@
+# deps / builds
+node_modules/
+dist/
+build/
+*.exe
+backend/bin/
+# env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# data
+data/
+*.log
+# os / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 开发模式下 Claude 放进来的页面构建产物（不进版本库）
+web/live/*
+!web/live/.gitkeep
+
+# Claude 同步文件用的临时目录
+.sync/
+# 开发模式后端的重载信号和日志（deploy/backend-dev.sh）
+backend/.reload
+backend/.reload.log

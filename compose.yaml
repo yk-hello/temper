@@ -1,0 +1,100 @@
+# 一条命令启动（给使用的人）：
+#
+#   docker compose up -d
+#
+# 第一次会在本机构建，要几分钟；之后打开 http://localhost:8080 注册一个账号就能用。
+# 不需要任何配置：行情用币安的公开数据（不用密钥），加密用的主密钥第一次启动时自动生成，存在 qs-data 这个数据卷里。
+# 想改的（端口、邮箱发信、Telegram、模拟行情……）抄一份 .env.example 成 .env 再改，见 README 的"配置"。
+#
+# 开发这套软件本身（改了代码自动重新编译）用 deploy/docker-compose.yml，见 CONTRIBUTING.md。
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: qs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qs_local_dev}   # 数据库只在容器之间能连，不对外；放到公网的机器上还是建议改掉
+      POSTGRES_DB: qs
+    volumes:
+      - qs-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qs -d qs"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  backend:
+    image: ${QS_BACKEND_IMAGE:-qs-backend:local}   # 有现成镜像时写在 .env 里，docker compose pull 就不用本机构建
+    build: ./backend
+    # 每次 up 都按现在的代码构建（没改动时用缓存，半分钟左右）：拉了新代码只跑 docker compose up -d 也是新版本。
+    # 用现成镜像的把 QS_PULL_POLICY 设成 missing
+    pull_policy: ${QS_PULL_POLICY:-build}
+    environment:
+      DATABASE_URL: postgres://qs:${POSTGRES_PASSWORD:-qs_local_dev}@db:5432/qs?sslmode=disable
+      MARKET_SOURCE: ${MARKET_SOURCE:-binance}
+      BRAND_NAME: ${BRAND_NAME:-Temper}
+      HYPERLIQUID: ${HYPERLIQUID:-1}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-localhost:*,127.0.0.1:*}
+      SITE_DOMAIN: ${SITE_DOMAIN:-}
+      QS_MASTER_KEY: ${QS_MASTER_KEY:-}
+      QS_MASTER_KEY_FILE: /data/master.key
+      QS_SIGNUP: ${QS_SIGNUP:-closed}
+      QS_LIVE_MAIN: ${QS_LIVE_MAIN:-1}
+      QS_LIVE_TESTNET: ${QS_LIVE_TESTNET:-1}
+      QS_WEBHOOK_PRIVATE: ${QS_WEBHOOK_PRIVATE:-0}
+      QSIG_KEYS: ${QSIG_KEYS:-}
+      DEMO_STRATEGY: ${DEMO_STRATEGY:-0}
+      AUTH_DEV: ${AUTH_DEV:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      NEWS_FEEDS: ${NEWS_FEEDS:-}
+      X_BEARER_TOKEN: ${X_BEARER_TOKEN:-}
+      X_ACCOUNTS: ${X_ACCOUNTS:-}
+      NEWS_NOTICES: ${NEWS_NOTICES:-on}
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      LIQ_FEEDS: ${LIQ_FEEDS:-on}
+      QS_LIMIT_PAPER_ACCOUNTS: ${QS_LIMIT_PAPER_ACCOUNTS:-}
+      QS_LIMIT_BACKTEST_DAYS: ${QS_LIMIT_BACKTEST_DAYS:-}
+      QS_LIMIT_BACKTEST_INSTRUMENTS: ${QS_LIMIT_BACKTEST_INSTRUMENTS:-}
+      QS_LIMIT_BACKTEST_SIGNALS: ${QS_LIMIT_BACKTEST_SIGNALS:-}
+      QS_LIMIT_STRATEGIES: ${QS_LIMIT_STRATEGIES:-}
+      QS_LIMIT_API_KEYS: ${QS_LIMIT_API_KEYS:-}
+      QS_LIMIT_PRICE_ALERTS: ${QS_LIMIT_PRICE_ALERTS:-}
+      QS_LIMIT_RULES: ${QS_LIMIT_RULES:-}
+      QS_LIMIT_SHOT_MB: ${QS_LIMIT_SHOT_MB:-}
+      QS_LIMIT_SHOTS_TOTAL_MB: ${QS_LIMIT_SHOTS_TOTAL_MB:-}
+      QS_LIMIT_SIGNUP_PER_IP_HOUR: ${QS_LIMIT_SIGNUP_PER_IP_HOUR:-}
+      AI_FORMAT: ${AI_FORMAT:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      BINANCE_API_KEY: ${BINANCE_API_KEY:-}
+      BINANCE_API_SECRET: ${BINANCE_API_SECRET:-}
+    volumes:
+      - qs-data:/data   # 自动生成的主密钥在这里：备份它；丢了以后已经存的交易所密钥和策略密钥解不开，只能重新接入
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    image: ${QS_WEB_IMAGE:-qs-web:local}
+    build: ./web
+    pull_policy: ${QS_PULL_POLICY:-build}
+    ports:
+      - "${QS_BIND:-127.0.0.1}:${QS_PORT:-8080}:80"   # 默认只有本机能打开；要让局域网里别的设备用，把 QS_BIND 改成 0.0.0.0（先看 README 的"安全"）
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  qs-db:
+  qs-data:

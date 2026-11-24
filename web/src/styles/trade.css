@@ -1,0 +1,368 @@
+/* 下单区和交易列表（模块 2）。下单区是"机身上的控件"（石墨色），列表是"屏幕"（纯黑）。
+   颜色只用来表示方向：买 = 涨色，卖 = 跌色；其余全是灰阶。 */
+
+.mk-side { background: var(--chassis); display: flex; flex-direction: column; min-width: 0; position: relative; }
+.mk-side-body { flex: 1; min-height: 0; overflow: auto; }
+.mk-trade-tab { background: var(--chassis); min-height: 100%; }
+
+.op { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px 0; font-size: 12px; min-height: 100%; }
+.op-out { justify-content: center; align-items: flex-start; gap: 10px; padding: 24px 18px; }
+.op-out-h { font-size: 15px; line-height: 22px; font-weight: 500; }
+.op-out-s { color: var(--t3); line-height: 19px; }
+.op-login { padding: 24px 18px; color: var(--t2); font-size: 13px; }
+.op-out-b { margin-top: 6px; text-decoration: none; }
+
+/* 账户 */
+.op-acct { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+.op-acct-name { color: var(--t2); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 账户名只是提醒（切换在顶栏，D73）：放不下时名字先省略，"管理"和杠杆不换行 */
+.op-acct-name { flex: 0 1 auto; min-width: 24px; }
+.op-acct > .op-link, .op-acct .op-set, .op-acct .op-live { flex: none; white-space: nowrap; }
+.op-link { background: none; border: 0; padding: 0; color: var(--t3); font-size: 12px; }
+.op-link:hover { color: var(--t1); }
+.op-ro { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 0.9fr); gap: 8px 10px; padding-bottom: 10px; border-bottom: var(--hair) solid var(--rule); }
+.op-ro .ro { min-width: 0; }
+.op-ro .ro-l { font-size: 11px; line-height: 15px; overflow: hidden; text-overflow: ellipsis; }
+.op-ro .ro-v { font-size: 12.5px; line-height: 17px; overflow: hidden; text-overflow: ellipsis; }
+.op-ro .op-big .ro-v, .op-ro .op-big-v { font-size: 15px; line-height: 21px; font-weight: 420; letter-spacing: -0.01em; }
+.op-ro .warn { color: var(--amber); }
+.op-meter { display: block; height: 2px; margin-top: 3px; background: var(--rule-2); position: relative; overflow: hidden; }
+.op-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--t2); transition: width 300ms var(--ease-out); }
+.op-meter i.warn { background: var(--amber); }
+.op-meter i.bad { background: var(--red); }
+
+/* 模式、杠杆 */
+.op-set { display: flex; align-items: center; gap: 6px; }
+.op-chip {
+  height: 24px; padding: 0 10px; white-space: nowrap; flex: none; border: 0; border-radius: var(--radius); background: var(--plate); color: var(--t1); font-size: 12px;
+  box-shadow: inset 0 0 0 var(--hair) var(--rule-2); transition: background 120ms var(--ease);
+}
+.op-chip:hover { background: var(--hover); }
+.op-keys { margin-left: auto; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* 方向：两块大按钮，选中的那一边用方向色 */
+.op-side { display: grid; grid-template-columns: 1fr 1fr; height: 34px; border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); padding: 2px; gap: 2px; }
+.op-side button { border: 0; background: transparent; color: var(--t3); font-size: 13px; font-weight: 500; border-radius: 1px; transition: background 160ms var(--ease), color 160ms var(--ease); }
+.op-side button:hover { color: var(--t1); }
+.op-side.buy button:first-child { background: var(--up); color: #04120b; }
+.op-side.sell button:last-child { background: var(--down); color: #1a0605; }
+:root[data-color-mode='red-up'] .op-side.buy button:first-child { color: #1a0605; }
+:root[data-color-mode='red-up'] .op-side.sell button:last-child { color: #04120b; }
+
+.op-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.op-tif { max-width: 55%; }
+
+/* 输入 */
+.op-f { display: flex; flex-direction: column; gap: 5px; }
+.op-l { color: var(--t3); font-size: 11.5px; line-height: 15px; display: flex; justify-content: space-between; gap: 8px; }
+.op-max { color: var(--t4); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op-in {
+  height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 0 0 10px; background: var(--void); border-radius: var(--radius);
+  box-shadow: inset 0 0 0 var(--hair) var(--rule-2); transition: box-shadow 120ms var(--ease);
+}
+.op-in:hover { box-shadow: inset 0 0 0 var(--hair) var(--rule-3); }
+.op-in:focus-within { box-shadow: inset 0 0 0 var(--hair) var(--white); }
+.op-in input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; }
+.op-in input::placeholder { color: var(--t3); font-size: 12px; }
+.op-in em { font-style: normal; color: var(--t3); font-size: 12px; padding-right: 10px; }
+.op-in-dim { color: var(--t3); font-size: 12px; justify-content: flex-end; padding-right: 10px; }
+.op-unit { display: flex; height: 100%; align-items: stretch; border-left: var(--hair) solid var(--rule); }
+.op-unit button { border: 0; background: transparent; color: var(--t4); font-size: 11px; padding: 0 8px; transition: color 120ms var(--ease); }
+.op-unit button[aria-pressed='true'] { color: var(--t1); }
+.op-unit button:hover { color: var(--t2); }
+.op-quick, .op-pct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: -4px; }
+.op-pct { grid-template-columns: repeat(4, 1fr); }
+.op-quick button, .op-pct button, .op-marks button {
+  height: 22px; border: 0; border-radius: var(--radius); background: transparent; color: var(--t3); font-size: 11px;
+  box-shadow: inset 0 0 0 var(--hair) var(--rule); transition: color 120ms var(--ease), background 120ms var(--ease), box-shadow 120ms var(--ease);
+}
+.op-quick button:hover, .op-pct button:hover, .op-marks button:hover { color: var(--t1); box-shadow: inset 0 0 0 var(--hair) var(--rule-3); }
+.op-pct button[aria-pressed='true'], .op-marks button[aria-pressed='true'] { color: var(--t1); background: var(--press); box-shadow: inset 0 0 0 var(--hair) var(--rule-3); }
+.op-quick button:disabled { opacity: 0.4; }
+
+.op-checks { display: flex; gap: 16px; }
+/* .op-check（自定义复选框）挪到 ui.css：账户页的交易偏好也用 */
+.op-tpsl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.op-tpsl .op-f { min-width: 0; }
+.op-tpsl .op-hint { grid-column: 1 / -1; }
+.op-hint { color: var(--t4); font-size: 11px; line-height: 15px; }
+
+/* 预估 */
+.op-pv { margin: 0; display: grid; gap: 3px; padding-top: 8px; border-top: var(--hair) solid var(--rule); }
+.op-pv div { display: flex; justify-content: space-between; gap: 8px; line-height: 18px; }
+.op-pv dt { color: var(--t3); }
+.op-pv dd { margin: 0; color: var(--t1); text-align: right; }
+.op-pv small { color: var(--t3); margin-left: 6px; font-size: 11px; }
+.op-pv dd > span > small { margin-left: 4px; }
+
+.op-msg { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 200ms var(--ease-out), opacity 160ms var(--ease); opacity: 0; margin-top: -10px; }
+.op-msg.on { grid-template-rows: 1fr; opacity: 1; margin-top: 0; }
+.op-msg > div { overflow: hidden; min-height: 0; }
+.op-msg span { display: block; padding: 7px 10px; font-size: 12px; line-height: 17px; color: var(--t1); background: rgba(226, 98, 92, 0.08); box-shadow: inset calc(var(--hair) * 2) 0 0 var(--red); }
+
+/* 下单按钮：贴在下单区底部，矮屏上也一直看得见 */
+/* 上面一截渐隐：表单从按钮下面滑过去时是"渐渐被盖住"，不会出现一个控件被齐腰切断的样子 */
+.op-go { position: sticky; bottom: 0; z-index: 3; margin: auto -14px 0; padding: 24px 14px 12px; background: linear-gradient(to bottom, rgba(17, 17, 19, 0), var(--chassis) 22px); pointer-events: none; }
+/* 贴在下单按钮上的三项：所需保证金、手续费、预估强平价 */
+.op-key { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; padding: 6px 0 8px; }
+.op-key div { display: block; line-height: 17px; }
+.op-key dt { font-size: 11px; line-height: 15px; white-space: nowrap; }
+.op-key dt small { margin-left: 4px; }
+/* 预案：占满一行，左边写"预案"（原来挤在三列里的第一格，只写"不选预案"，看不出是什么） */
+.op-key .op-pb { grid-column: 1 / -1; display: flex; margin-top: 4px; }
+.op-key .op-pb .op-l { font-size: 11px; color: var(--t3); }
+.op-key dd { text-align: left; font-size: 12.5px; white-space: nowrap; }
+.op-go .op-msg { margin-bottom: 4px; }
+.op-go > * { pointer-events: auto; }
+.op-submit {
+  width: 100%; height: 40px; border: 0; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 14px; font-weight: 550; transition: filter 120ms var(--ease), transform 80ms var(--ease);
+}
+.op-submit.buy { background: var(--up); color: #04120b; }
+.op-submit.sell { background: var(--down); color: #1a0605; }
+:root[data-color-mode='red-up'] .op-submit.buy { color: #1a0605; }
+:root[data-color-mode='red-up'] .op-submit.sell { color: #04120b; }
+.op-submit:hover { filter: brightness(1.08); }
+.op-submit:active { transform: translateY(1px); }
+.op-submit:disabled { filter: saturate(0.4) brightness(0.8); cursor: wait; }
+.op-submit kbd { color: inherit; opacity: 0.55; box-shadow: inset 0 0 0 var(--hair) currentColor; font-size: 10px; }
+
+/* 杠杆对话框 */
+.op-dl-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.op-dl-row .op-in { flex: 1; max-width: 220px; }
+.op-dl-hint { margin: -8px 0 0 !important; text-align: right; }
+.op-lev-in { max-width: 120px !important; }
+.op-small { font-size: 12px !important; line-height: 18px !important; color: var(--t3) !important; }
+.op-range { width: 100%; accent-color: var(--white); margin: 0; }
+.op-marks { display: flex; gap: 4px; }
+.op-marks button { flex: 1; }
+
+/* ---------- 交易列表 ---------- */
+.tl td { height: 38px; }
+.tl .sym { font-weight: 550; }
+.tl-sym { border: 0; background: none; padding: 0; color: var(--t1); }
+.tl-sym:hover .sym { color: var(--white); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--rule-3); }
+.tl-tag { margin-left: 8px; font-size: 11px; color: var(--t3); }
+.tl-tag.up { color: var(--up); }
+.tl-tag.down { color: var(--down); }
+.tl-sub { display: block; font-size: 11px; color: var(--t3); line-height: 14px; }
+.tl td:has(.tl-sub) { line-height: 16px; }
+.tl-roe { margin-left: 6px; font-size: 11px; opacity: 0.8; }
+.tl-act { text-align: right !important; white-space: nowrap; width: 1%; }
+.tl-act .btn + .btn { margin-left: 4px; }
+.tl th.tl-act .btn { font-weight: 420; }
+.tl-status { white-space: normal !important; }
+.warn-t { color: var(--amber); }
+.tl-pager { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 8px 12px; }
+
+/* 盘口：点价格填单 */
+.ob-r { cursor: pointer; }
+.ob-r:hover { background: rgba(255, 255, 255, 0.045); }
+.ob-r:active { background: rgba(255, 255, 255, 0.08); }
+
+/* 窄屏：下单区在底部"下单"标签里，右列不显示 */
+@media (max-width: 859px) {
+  .mk > .mk-side { display: none; }
+  .mk-trade-tab .op { max-width: 520px; }
+  /* 下单表单 + 右边精简盘口。表单那一栏够宽才分两栏（容器查询），手机上只有表单 */
+  .mk-trade-tab { container-type: inline-size; }
+  .mk-trade-split { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100%; }
+  .mk-trade-book { display: none; }
+  @container (min-width: 600px) {
+    .mk-trade-split { grid-template-columns: minmax(0, 1.35fr) minmax(220px, 1fr); }
+    .mk-trade-split .op { max-width: none; }
+    .mk-trade-book { display: block; position: sticky; top: 0; align-self: start; padding: 10px 12px 12px 0; }
+  }
+  /* 底部"下单"标签只有半屏高：账户读数只留第一行（权益、可用、保证金率），把下单表单让上来；盈亏在"持仓"标签里看 */
+  .mk-trade-tab .op-ro > .ro:nth-child(n + 4) { display: none; }
+}
+.mk-side-body { container-type: inline-size; }
+/* 矮屏（1080p 150%/175%）：下单区更紧凑 */
+@media (max-height: 640px) {
+  .op { gap: 8px; padding-top: 10px; }
+  .op-ro { gap: 6px 10px; padding-bottom: 8px; }
+  .op-side { height: 30px; }
+  .op-in { height: 30px; }
+  .op-submit { height: 36px; }
+  .op-go { padding-top: 20px; padding-bottom: 10px; }
+}
+/* 桌面：读数只留一行（可用、未实现、已实现），其余在顶栏风险条 */
+@media (min-width: 860px) {
+  .op-ro .op-n { display: none; }
+  .op-ro .op-big .ro-v { font-size: 12.5px; line-height: 17px; font-weight: inherit; letter-spacing: 0; }
+}
+@media (max-width: 859px) {
+  .op-ro .op-w { display: none; }
+}
+/* 触屏设备没有键盘快捷键 */
+@media (hover: none) {
+  .op-submit kbd { display: none; }
+}
+.op-warn { color: var(--amber); }
+
+/* 已实现盈亏的明细（悬停或键盘聚焦时显示）。面板相对整排读数定位、宽度跟读数区一样，
+   平时 display: none——不占位，窄屏上也不会把下单区撑出横向滚动 */
+.op-ro { position: relative; }
+.ro-has-pop { cursor: help; outline: none; }
+.ro-has-pop .ro-l { text-decoration: underline dotted var(--rule-3); text-underline-offset: 3px; }
+.ro-pop {
+  display: none; position: absolute; z-index: 20; top: calc(100% - 4px); left: 0; right: 0;
+  padding: 9px 11px; background: #111113; border-radius: var(--radius); font-size: 12px; line-height: 20px; color: var(--t2);
+  box-shadow: inset 0 0 0 var(--hair) var(--rule-2), 0 10px 28px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+.ro-has-pop:hover .ro-pop, .ro-has-pop:focus-visible .ro-pop { display: block; animation: ro-pop-in 140ms var(--ease-out); }
+@keyframes ro-pop-in { from { opacity: 0; transform: translateY(-2px); } }
+.rp-row { display: flex; justify-content: space-between; gap: 12px; }
+.rp-row .num { color: var(--t1); }
+.rp-row .num.up { color: var(--up); }
+.rp-row .num.down { color: var(--down); }
+.rp-sum { border-top: var(--hair) solid var(--rule); margin-top: 3px; padding-top: 3px; color: var(--t1); }
+.rp-note { margin: 6px 0 0; color: var(--t3); font-size: 11px; line-height: 16px; }
+
+/* 委托可以点开看逐笔成交 */
+.tl-exp { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+.tl-exp svg { color: var(--t3); transition: transform 160ms var(--ease-out), color 120ms var(--ease); }
+.tl-exp:hover svg, .tl-exp:focus-visible svg { color: var(--t1); }
+.tl-exp[aria-expanded='true'] svg { transform: rotate(90deg); color: var(--t1); }
+.tl tr.tl-open > td { background: var(--hover); }
+.tl tr.tl-fills > td { padding: 4px 14px 10px 28px; background: #0c0c0e; }
+.tl-sub-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tl .tl-sub-tbl th { color: var(--t3); font-weight: 450; }
+.tl-exp-pad { padding-left: 14px; }
+.tl .tl-sub-tbl td, .tl .tl-sub-tbl th { height: auto; text-align: right; padding: 3px 0; font-variant-numeric: tabular-nums; }
+.tl-sub-tbl th:first-child, .tl-sub-tbl td:first-child { text-align: left; }
+.tl-sub-tbl .tl-sum td { border-top: var(--hair) solid var(--rule); padding-top: 5px; color: var(--t1); }
+
+/* 条件单（触发价、触发后市价/限价、白话说明） */
+.op-cond { display: flex; flex-direction: column; gap: 8px; animation: op-reveal 200ms var(--ease-out); }
+@keyframes op-reveal { from { opacity: 0; transform: translateY(-4px); } }
+.op-l .op-by, .op-l .op-pm { margin-left: auto; }
+.op-l .op-by .sel-btn, .op-l .op-pm .sel-btn { height: 20px; padding: 0 2px 0 6px; font-size: 11.5px; color: var(--t3); }
+/* GTD 有效多久（D103）：挤不下时换到下一行，靠右 */
+.op-row:has(.op-gtd) { flex-wrap: wrap; row-gap: 6px; }
+.op-gtd { margin-left: auto; }
+.op-exec { justify-content: space-between; }
+.op-exec .op-l { margin: 0; }
+.op-cond-say { color: var(--t2); margin: 0; }
+.op-hide { display: none; }
+.op-tpsl-by { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.op-tpsl-by .op-by .sel-btn { height: 22px; font-size: 11.5px; color: var(--t3); }
+/* 下单确认摘要 */
+.cf-sum { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0 0 14px; font-size: 13px; }
+.cf-sum > div { display: contents; }
+.cf-sum dt { color: var(--t3); }
+.cf-sum dd { margin: 0; text-align: right; color: var(--t1); }
+.cf-sum dd.up { color: var(--up); }
+.cf-sum dd.down { color: var(--down); }
+.cf-sum small { color: var(--t3); margin-left: 4px; }
+.cf-skip { margin: 0 0 14px; font-size: 12px; color: var(--t3); }
+.btn.primary.cf-go.sell { background: var(--down); border-color: var(--down); }
+
+/* 逐仓保证金旁边的编辑按钮、调整保证金对话框 */
+.tl-edit { margin-left: 6px; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; vertical-align: -4px;
+  border: 0; border-radius: var(--radius); background: transparent; color: var(--t3); cursor: pointer; }
+.tl-edit:hover, .tl-edit:focus-visible { color: var(--t1); background: var(--hover); }
+.mg-max { margin-left: auto; font-size: 11.5px; }
+.mg-sum { margin-top: 4px; }
+
+/* 列表行进出场（lib/rowmotion.ts）：新行从上面滑进来，底色按方向闪一下再淡掉；消失的行淡出、往右滑走 */
+.tl tr.tl-enter { animation: tl-in 520ms var(--ease-out); }
+.tl tr.tl-enter.up { --flash: color-mix(in srgb, var(--up) 16%, transparent); }
+.tl tr.tl-enter.down { --flash: color-mix(in srgb, var(--down) 16%, transparent); }
+@keyframes tl-in { 0% { opacity: 0; transform: translateY(-8px); background: var(--flash); } 35% { opacity: 1; transform: none; background: var(--flash); } 100% { background: transparent; } }
+.tl tr.tl-exit { animation: tl-out 240ms var(--ease-in, ease-in) forwards; pointer-events: none; }
+@keyframes tl-out { to { opacity: 0; transform: translateX(14px); } }
+@media (prefers-reduced-motion: reduce) { .tl tr.tl-enter, .tl tr.tl-exit { animation: none; } }
+
+/* 精简盘口（窄屏下单标签右边）：只要价格和数量两列，行矮一点 */
+.ob-compact { position: static; padding: 0; }
+.ob-compact .ob-h, .ob-compact .ob-r { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); padding: 0 8px; }
+.ob-compact .ob-h > :nth-child(3), .ob-compact .ob-r > span:nth-of-type(3) { display: none; }
+
+.op-err { margin: 2px 0 6px; color: var(--red); font-size: 12px; line-height: 1.4; }
+
+/* 机器人（D83） */
+.bt-kinds { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; margin-bottom: 10px; box-shadow: inset 0 0 0 var(--hair) var(--rule-2); border-radius: var(--radius); padding: 2px; }
+.bt-kinds button { height: 26px; border: 0; background: transparent; color: var(--t2); font-size: 12px; border-radius: var(--radius); white-space: nowrap; }
+.bt-kinds button:hover { color: var(--t1); }
+.bt-kinds button[aria-pressed='true'] { background: var(--press); color: var(--t1); font-weight: 550; }
+.bt-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bt-f { margin-bottom: 8px; min-width: 0; }
+.bt-f .op-in input { min-width: 0; }
+.bt-repeat { align-self: end; margin-bottom: 14px; }
+.bt-plan { margin: 4px 0 8px; }
+.bt-plan dt { color: var(--t3); }
+.bt-plan.op-pv, .bt .op-pv { display: block; }
+.bt .op-pv > div { display: flex; justify-content: space-between; gap: 10px; line-height: 21px; font-size: 12px; }
+.bt-ladder { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 6px; }
+.bt-ladder th { text-align: right; font-weight: 450; color: var(--t3); padding: 2px 0; }
+.bt-ladder th:first-child, .bt-ladder td:first-child { text-align: left; }
+.bt-ladder td { text-align: right; padding: 2px 0; color: var(--t1); }
+.bt-ladder i { font-style: normal; color: var(--t3); }
+.bt-warn { margin: 2px 0 6px; font-size: 12px; line-height: 1.4; color: var(--amber); }
+.bt-note { color: var(--t3); font-size: 12px; }
+.bt-read { border-bottom: var(--hair) solid var(--rule); flex: none; }
+.bt-list tr { cursor: pointer; }
+.bt-list .bt-off td { color: var(--t3); }
+.bt-detail { cursor: default; }
+.bt-recs { list-style: none; margin: 0; padding: 4px 0; max-height: 180px; overflow: auto; font-size: 12px; }
+.bt-recs li { display: flex; gap: 14px; line-height: 21px; color: var(--t2); }
+.bt-stop-opts { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.bt-narrow { padding: 8px 12px; border-bottom: var(--hair) solid var(--rule); }
+.bt-empty { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.bt-f .op-in input { padding-right: 8px; }
+
+/* 算法单、计算器、模板 */
+.op-tpl { display: flex; align-items: center; gap: 12px; min-height: 24px; margin-bottom: 8px; font-size: 12px; }
+.op-tpl-sel { min-width: 0; flex: 1; }
+.op-algo-row { margin-top: -2px; }
+.op-algo-sel { width: 100%; }
+.op-algo { margin-bottom: 2px; }
+.op-calc { margin: 6px 0; font-size: 12px; color: var(--t2); }
+.op-calc > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+.op-calc-risk { flex-wrap: wrap; }
+.op-calc-risk .op-link { margin-left: auto; white-space: nowrap; }
+.op-calc-risk label { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.op-calc-risk input { width: 34px; height: 20px; padding: 0 4px; border: 0; border-radius: var(--radius); background: var(--void); color: var(--t1); font-size: 12px; text-align: right; }
+.op-algo-list { border-bottom: var(--hair) solid var(--rule); }
+.ob-group { margin-left: auto; }
+/* 盘口点击交易 */
+.dom { height: 100%; display: flex; flex-direction: column; font-size: 12px; overflow: hidden; }
+.dom-h { display: flex; align-items: center; gap: 8px; padding: 6px 10px; flex: none; }
+.dom-qty { flex: 1; min-width: 0; height: 26px; }
+.dom-on { background: var(--amber) !important; color: #000 !important; }
+.dom-cols, .dom-r { display: grid; grid-template-columns: 1fr 1.2fr 1fr; align-items: center; }
+.dom-cols { padding: 0 10px; height: 20px; color: var(--t3); flex: none; text-align: center; }
+.dom-r { flex: 1 1 0; min-height: 15px; max-height: 24px; padding: 0 10px; }
+.dom-r button { height: 100%; border: 0; background: transparent; color: var(--t2); font-size: 12px; font-family: inherit; font-variant-numeric: tabular-nums; padding: 0 6px; } /* 数字用界面字体的等宽数字，和盘口一样（tokens.css 的字体规则；11-16 走查：原来用代码字体，看着像另一个软件） */
+.dom-buy { text-align: right; }
+.dom-sell { text-align: left; }
+.dom-buy:hover { background: rgba(76, 185, 138, 0.22); color: var(--t1); }
+.dom-sell:hover { background: rgba(226, 98, 92, 0.22); color: var(--t1); }
+.dom-px { text-align: center; color: var(--t1); position: relative; }
+.dom-r.ask .dom-px { color: var(--down); }
+.dom-r.bid .dom-px { color: var(--up); }
+.dom-own { position: absolute; right: 0; top: 0; color: var(--amber) !important; font-size: 11px !important; padding: 0 2px !important; }
+.dom-mid { height: 1px; background: var(--rule-2); margin: 2px 0; flex: none; }
+
+/* 交易所账户（D89）：账户名旁边一个小标记；确认框顶上一行写明会在交易所成交 */
+.op-live { flex: none; display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 2px; font-size: 11px; line-height: 1; letter-spacing: 0.02em; white-space: nowrap;
+  color: var(--amber); box-shadow: inset 0 0 0 var(--hair) rgba(212, 164, 76, 0.55); background: rgba(212, 164, 76, 0.08); }
+.op-live.testnet, .op-live.fake { color: var(--t2); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); background: transparent; }
+.op-acct:has(.op-live) .op-set { margin-left: auto; }
+
+/* 图上右键下单（pages/trade/PriceMenu.tsx） */
+.pm { position: fixed; z-index: 70; min-width: 220px; padding: 4px; background: #111113; border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2), 0 12px 32px rgba(0, 0, 0, 0.6); animation: sel-in 120ms var(--ease-out); }
+.pm-px { padding: 6px 10px 4px; font-size: 12px; color: var(--t3); }
+.pm button { display: flex; align-items: center; width: 100%; height: 30px; padding: 0 10px; border: 0; border-radius: var(--radius); background: transparent; color: var(--t1); font-size: 12.5px; text-align: left; cursor: pointer; white-space: nowrap; }
+.pm button:hover, .pm button:focus-visible { background: var(--hover); outline: none; }
+.pm-note { margin: 4px 0 0; padding: 6px 10px 4px; border-top: var(--hair) solid var(--rule); font-size: 11px; line-height: 1.4; color: var(--t3); max-width: 260px; }
+@media (prefers-reduced-motion: reduce) { .pm { animation: none; } }
+
+/* 自动减仓排队：4 格小竖条，跟在强平价后面 */
+.adl { display: inline-flex; align-items: flex-end; gap: 1.5px; margin-left: 8px; height: 10px; vertical-align: -1px; cursor: help; }
+.adl i { width: 2.5px; height: 4px; background: var(--rule-3); border-radius: 0.5px; }
+.adl i:nth-child(2) { height: 6px; } .adl i:nth-child(3) { height: 8px; } .adl i:nth-child(4) { height: 10px; }
+.adl i.on { background: var(--t2); }
+.adl.hot i.on { background: var(--amber); }

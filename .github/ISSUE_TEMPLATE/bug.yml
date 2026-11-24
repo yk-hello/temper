@@ -1,0 +1,43 @@
+name: 问题 / Bug
+description: 哪里不对、和说的不一样 / Something is broken or behaves differently from the docs
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        安全问题（密钥、权限、能动别人的账户）请不要在这里公开提，私下联系维护者。
+        Please report security issues privately to the maintainers, not here.
+        不要贴任何密钥、密码、主密钥。Never paste keys, passwords or the master key.
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / What happened
+      description: 做了什么、看到了什么、本来应该怎样 / Steps, what you saw, what you expected
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: 在哪 / Where
+      options:
+        - 模拟盘 / Paper trading
+        - 交易所账户（实盘） / Exchange account (live)
+        - 回测 / Backtest
+        - 策略接入 / Strategy connection
+        - 行情和图表 / Market data and charts
+        - 账户、通知 / Account, notifications
+        - 部署、启动 / Deployment
+        - 其他 / Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / Version
+      description: git 提交号或镜像标签 / git commit or image tag
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / Logs
+      description: "docker compose logs backend --tail 100（先删掉里面的邮箱和地址 / remove emails and addresses first）"
+      render: text

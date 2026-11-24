@@ -1,0 +1,33 @@
+{
+  "name": "qs-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@finos/perspective": "3.8.0",
+    "@finos/perspective-viewer": "3.8.0",
+    "@finos/perspective-viewer-datagrid": "3.8.0",
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@fontsource/noto-sans-sc": "5.3.1",
+    "@noble/hashes": "1.6.1",
+    "mp4-muxer": "5.2.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "uqr": "0.1.3"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.3.4",
+    "typescript": "5.6.3",
+    "vite": "5.4.11"
+  }
+}

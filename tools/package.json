@@ -1,0 +1,9 @@
+{
+  "name": "qs-tools",
+  "private": true,
+  "description": "检查脚本（e2e-*.mjs）用的依赖。用 tools/dev/env_up.sh 起测试环境时会装在工作目录里",
+  "devDependencies": {
+    "ethers": "6.13.4",
+    "playwright": "1.64.1"
+  }
+}
