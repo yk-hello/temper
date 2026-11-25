@@ -246,14 +246,14 @@ a.mark { color: var(--t1); text-decoration: none; }
 .sel.on .sel-btn svg { transform: rotate(180deg); color: var(--t1); }
 .sel-pop {
   position: absolute; z-index: 30; right: 0; top: calc(100% + 4px); width: 248px; max-width: calc(100vw - 24px); margin: 0; padding: 4px; list-style: none;
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
   background: #111113; border-radius: var(--radius); outline: none;
   box-shadow: inset 0 0 0 var(--hair) var(--rule-2), 0 12px 32px rgba(0, 0, 0, 0.6);
   animation: sel-in 140ms var(--ease-out);
 }
 @keyframes sel-in { from { opacity: 0; transform: translateY(-3px); } }
-/* 下面放不下时往上开、右对齐伸出面板时左对齐（Select.tsx 打开前量好） */
+/* 下面放不下时往上开；伸出面板时挪回来、太窄时收窄、太高时限高在里面滚（Select.tsx 打开后量好，写在 style 上） */
 .sel.up .sel-pop { top: auto; bottom: calc(100% + 4px); animation-name: sel-in-up; }
-.sel.left .sel-pop { right: auto; left: 0; }
 @keyframes sel-in-up { from { opacity: 0; transform: translateY(3px); } }
 .sel-pop li { display: flex; flex-direction: column; gap: 1px; padding: 7px 10px 7px 12px; border-radius: var(--radius); cursor: pointer; position: relative; }
 .sel-pop li.act { background: var(--hover); }

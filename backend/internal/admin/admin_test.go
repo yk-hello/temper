@@ -245,6 +245,16 @@ func TestRegistrationHaltAndLog(t *testing.T) {
 			t.Fatalf("操作记录第 %d 条：%v", i, acts)
 		}
 	}
+	// "谁做的""加了谁"写账户名（这几个账号都没绑邮箱，11-25 前这两栏是空的）
+	for _, x := range b["log"].([]any) {
+		m := x.(map[string]any)
+		if m["actor_email"] != "owner@example.com" {
+			t.Fatalf("操作记录里谁做的：%v", m)
+		}
+		if m["action"] == "user_add" && m["target"] != "new@example.com" {
+			t.Fatalf("操作记录里加了谁：%v", m)
+		}
+	}
 	if _, err := e.pool.Exec(context.Background(), `update admin_log set action = 'x'`); err == nil {
 		t.Fatal("操作记录能改")
 	}

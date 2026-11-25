@@ -1,6 +1,7 @@
-// 页面切换不整页刷新（更像原生应用）：改地址栏 + 视图过渡动画，浏览器前进后退照常可用。
+// 页面切换不整页刷新（更像原生应用）：只改地址栏，浏览器前进后退照常可用。
+// 11-25 去掉了切换时的淡入淡出（视图过渡）：用户说"每次打开切换页面都感觉像 PPT"。实测新页面 60～90 毫秒就画好了，
+// 淡入淡出却要拖到 330 毫秒，中间旧页面定格；现在点了就换。交易页里拖动面板的过渡（lib/layout.ts）不受影响。
 import { useSyncExternalStore } from 'react'
-import { flushSync } from 'react-dom'
 
 const subs = new Set<() => void>()
 let search = location.search
@@ -11,13 +12,7 @@ function emit() {
   search = location.search
   subs.forEach((f) => f())
 }
-window.addEventListener('popstate', () => transition(emit))
-
-function transition(fn: () => void) {
-  const d = document as any
-  if (d.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) d.startViewTransition(() => flushSync(fn))
-  else fn()
-}
+window.addEventListener('popstate', emit)
 
 export function usePage(): string {
   const s = useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f) }, () => search)
@@ -29,7 +24,7 @@ export function go(page: string, replace = false) {
   const url = page ? `?page=${page}` : location.pathname
   if (url === location.search || (!page && !location.search)) return
   history[replace ? 'replaceState' : 'pushState'](null, '', url)
-  transition(emit)
+  emit()
   window.scrollTo(0, 0)
 }
 

@@ -79,7 +79,7 @@ Main variables:
 | `QSIG_KEYS` | Keys for programmatic strategies: `key_id:secret:strategy_id`, separated by semicolons |
 | `BINANCE_API_KEY` / `BINANCE_API_SECRET` | Optional, read-only is enough: loads real margin tiers for every symbol (without it only BTC has the full table) |
 | `QS_LIVE_MAIN` / `QS_LIVE_TESTNET` | Set to `0` to disallow Binance production / Binance demo trading |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | Optional, send mail from your own mailbox: codes for linking an email, password recovery, alert emails. For Gmail: `smtp.gmail.com` / `465` with an app password (not your login password). Port 465 uses TLS, 587 uses STARTTLS; mail is never sent over an unencrypted connection |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | Optional, send mail from your own mailbox: codes for linking an email, password recovery, alert emails. For Gmail: `smtp.gmail.com` / `465` with an app password (not your login password); QQ Mail and 163 work the same way. Microsoft mailboxes (Outlook, Hotmail, Microsoft 365) do not work: they only accept OAuth2 sign-in. Port 465 uses TLS, 587 uses STARTTLS; mail is never sent over an unencrypted connection |
 | `MAIL_FROM` / `MAIL_FROM_NAME` | Optional: sender address (defaults to `SMTP_USER`) and display name. Once mail is configured, each user's notification settings gain an "Email" column (on by default only for money and security events such as liquidation warnings and new-device sign-ins; at most 20 emails per user per hour) |
 | `AUTH_DEV` | Leave it unset. Without outgoing mail, linking an email needs no code and a forgotten password is reset with a local command (not in the browser, so nobody can reset your password with your email); with mail, codes are emailed. `1` is for developers only: codes are shown on the page; never use it on a machine others can reach |
 | `QS_WEBHOOK_PRIVATE` | Default `0`: outgoing webhooks are never sent to localhost or private networks. Set `1` only on a private network where you need that |
@@ -107,6 +107,7 @@ The detailed guides are in Chinese for now, except the protocol:
 
 - Exchange keys need "futures trading" only; keys with withdrawal or transfer permission are refused. The code contains no withdrawal or transfer calls.
 - Listens on this machine only by default (`127.0.0.1:8080`). Before exposing it, set up HTTPS, outgoing mail (`SMTP_*`; otherwise a forgotten password can only be reset with a command on the server), `SITE_DOMAIN`, and change the database password.
+- Do not open it over plain `http://` from the internet: anyone on the same network can read the sign-in password, codes and session cookie. Use an SSH tunnel or HTTPS; the sign-in page warns "Connection not encrypted" when opened over an unencrypted address.
 - When mail goes out from your own mailbox, recipients see your sender address; personal mailboxes such as Gmail can send a few hundred messages a day, so use a dedicated mail service for larger groups.
 - Please report security issues privately to the maintainers rather than in a public issue.
 

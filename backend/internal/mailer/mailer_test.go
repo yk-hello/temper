@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/base64"
+	"errors"
 	"mime"
 	"net"
 	"net/mail"
@@ -154,5 +155,23 @@ func TestOffAndBadAddress(t *testing.T) {
 	c := Config{Host: "127.0.0.1", Port: 1, From: "me@example.com"}
 	if err := c.Send(context.Background(), "not-an-address", "x", "y"); err == nil || !strings.Contains(err.Error(), "收件地址") {
 		t.Fatalf("坏地址：%v", err)
+	}
+}
+
+// 微软的发信服务器直接说用不了，不去连（2026-11-25：个人 Outlook 只认 OAuth2）
+func TestMicrosoftRefused(t *testing.T) {
+	for _, h := range []string{"smtp-mail.outlook.com", "smtp.office365.com", "SMTP.Office365.com.", "smtp.live.com", "outlook.com"} {
+		if !Microsoft(h) {
+			t.Fatalf("%s 应该认出是微软的", h)
+		}
+		c := Config{Host: h, Port: 587, User: "a@example.com", Password: "x", From: "a@example.com", Timeout: time.Second}
+		if err := c.Send(context.Background(), "b@example.com", "s", "b"); !errors.Is(err, ErrMicrosoft) {
+			t.Fatalf("%s：%v", h, err)
+		}
+	}
+	for _, h := range []string{"smtp.gmail.com", "smtp.qq.com", "smtp.163.com", "notoutlook.com", "smtp.myoutlook.com.cn"} {
+		if Microsoft(h) {
+			t.Fatalf("%s 不是微软的", h)
+		}
 	}
 }

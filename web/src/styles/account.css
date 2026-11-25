@@ -16,6 +16,8 @@
 .au-tag-sm { margin-top: 14px; font-size: 12px; line-height: 18px; color: var(--t3); }
 .au-method { margin: 24px 0 20px; }
 .au-tag + .au-note { margin: 24px 0 20px; } /* 注册关着时没有邮箱 / 钱包标签，说明框补上同样的间距 */
+.au-title + .au-note { margin: 16px 0 14px; } /* 忘记密码：标题下面的"连接没加密" */
+.au-note + .au-note { margin-top: -8px; }
 .au-method .seg { width: 100%; height: 32px; }
 .au-method .seg button { flex: 1; font-size: 13px; }
 .au-form { display: flex; flex-direction: column; gap: 16px; }

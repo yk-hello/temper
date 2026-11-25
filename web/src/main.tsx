@@ -50,6 +50,11 @@ const Overview = lazy(() => import('./pages/Landing').then((m) => ({ default: m.
 const WizardHost = lazy(() => import('./pages/ai/Wizard').then((m) => ({ default: m.WizardHost })))
 const HighlightToast = lazy(() => import('./ui/HighlightToast').then((m) => ({ default: m.HighlightToast })))
 
+// 打开后浏览器一空下来，就把所有页面的代码先下载好（11-25 用户："不能一次性全加载吗"）：第一次点进哪个页面都不用等下载。
+// import() 下过一次就有缓存，上面 lazy 再要时直接用。
+// 页面里按页签再分的也一起下（没有成交的新账号进复盘页默认就是"练习"页签）；"自由透视"（Perspective，几 MB）还是打开时才下。
+const preload = () => { for (const f of [() => import('./pages/About'), () => import('./pages/Account'), () => import('./pages/Admin'), () => import('./pages/Ai'), () => import('./pages/Auth'), () => import('./pages/Hero'), () => import('./pages/Landing'), () => import('./pages/Market'), () => import('./pages/Review'), () => import('./pages/Risk'), () => import('./pages/ai/Wizard'), () => import('./ui/HighlightToast'), () => import('./ui/Palette'), () => import('./pages/review/TradeReplay'), () => import('./pages/review/Practice'), () => import('./pages/review/Highlights'), () => import('./pages/review/Backtest'), () => import('./pages/market/Today'), () => import('./pages/market/Screener')]) f().catch(() => undefined) }
+
 function Root() {
   return (
     <>
@@ -112,6 +117,11 @@ function Page() {
 }
 
 loadLimits() // 部署的人改的上限（D103）
+{
+  const w = window as Window & { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }
+  if (w.requestIdleCallback) w.requestIdleCallback(preload, { timeout: 4000 })
+  else setTimeout(preload, 2000)
+}
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Suspense fallback={null}>

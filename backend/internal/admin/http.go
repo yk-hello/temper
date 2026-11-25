@@ -74,11 +74,10 @@ func readJSON(w http.ResponseWriter, r *http.Request, v any) bool {
 	return true
 }
 
+// who 操作记录里写"谁做的"：账户名优先（D113 以后账号可以不绑邮箱，只认邮箱的话这一栏是空的）。
+// 存在 admin_log.actor_email 这一列里（列名是老的，没改）。
 func who(u *auth.User) string {
-	if u.Email != "" {
-		return u.Email
-	}
-	return u.Wallet
+	return firstNonEmpty(u.Name, u.Email, u.Wallet)
 }
 
 func (a *API) Routes(mux *http.ServeMux) {
@@ -196,8 +195,8 @@ func (a *API) addUser(w http.ResponseWriter, r *http.Request, u *auth.User) {
 		fail(w, err)
 		return
 	}
-	a.record(r.Context(), u, "user_add", nu.Email, nil)
-	write(w, 200, map[string]any{"id": nu.ID, "email": nu.Email})
+	a.record(r.Context(), u, "user_add", firstNonEmpty(nu.Name, nu.Email), nil)
+	write(w, 200, map[string]any{"id": nu.ID, "name": nu.Name, "email": nu.Email})
 }
 
 func (a *API) registration(w http.ResponseWriter, r *http.Request, u *auth.User) {
@@ -320,9 +319,11 @@ func (a *API) revoke(w http.ResponseWriter, r *http.Request, u *auth.User) {
 }
 
 // firstNonEmpty 第一个不空的。
-func firstNonEmpty(a, b string) string {
-	if strings.TrimSpace(a) != "" {
-		return a
+func firstNonEmpty(v ...string) string {
+	for _, x := range v {
+		if strings.TrimSpace(x) != "" {
+			return x
+		}
 	}
-	return b
+	return ""
 }

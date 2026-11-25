@@ -63,6 +63,7 @@ export default function Auth() {
             <>
               <h1 className="au-title">{t(mode === 'login' ? 'auth.loginTitle' : 'auth.registerTitle')}</h1>
               <p className="au-tag">{t('auth.tagline')}</p>
+              <Insecure />
               {s.state === 'unavailable' && <div className="note au-note">{t('auth.unavailable')}</div>}
               {mode === 'register' && !regOpen
                 ? <div className="note au-note" data-reg-closed>{t('adm.regClosedNote')}</div>
@@ -92,6 +93,14 @@ export default function Auth() {
 
 /** 忘记密码（1.12、D113）：输账户名，验证码发到这个账户绑定的邮箱；没绑邮箱、这台没配发信邮箱时用本机命令。
  *  账户名有没有注册、绑没绑邮箱，提示都一样（不暴露） */
+// 连接没加密（用 http 打开、又不是本机）：同一网络里的人能看到输入的密码和验证码（11-25，用户："加一个吧"）。
+// 本机 localhost、SSH 隧道、HTTPS 都算加密（浏览器自己的 isSecureContext）。
+function Insecure() {
+  const t = useT()
+  if (typeof window === 'undefined' || window.isSecureContext) return null
+  return <div className="note au-note" role="alert" data-insecure><b>{t('auth.insecure')}</b><span>{t('auth.insecureHint')}</span></div>
+}
+
 function ForgotForm({ onBack }: { onBack: () => void }) {
   const t = useT()
   const [mail, setMail] = useState<{ mail: boolean; dev: boolean } | null>(null)
@@ -137,6 +146,7 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
   return (
     <div data-forgot-form>
       <h1 className="au-title">{t('auth.forgotTitle')}</h1>
+      <Insecure />
       {done ? (
         <>
           <p className="au-tag" data-forgot-done>{t('auth.resetDone')}</p>

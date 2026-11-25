@@ -8,15 +8,28 @@ const HISTORY_MS = 10 * 60 * 1000 // 每个品种在浏览器里只保留最近 
 /** 订阅后端行情推送。断线自动重连（1s → 最多 15s）。 */
 export interface BookFrame { type: 'book'; instrument: string; venue: string; ts: number; bids: [string, string][]; asks: [string, string][] }
 
+// 最近一次的行情和每个品种最近一次的盘口留在内存里（11-25 用户："每次切换页面数据显示特别慢"）：
+// 切回交易页先显示它们，新连接连上再换成实时的。只用 15 秒以内的，太旧的不拿出来（价格已经变了，点盘口会填错价）。
+// 价格走势（最近 10 分钟）也放在这里，切页面不丢。
+const FRESH_MS = 15_000
+let lastSnap: { at: number; s: Snapshot } | null = null
+const lastBooks = new Map<string, BookFrame>()
+const sharedHistory = new Map<string, Point[]>()
+const freshSnap = () => (lastSnap && Date.now() - lastSnap.at < FRESH_MS ? lastSnap.s : null)
+const freshBook = (inst?: string) => {
+  const b = inst ? lastBooks.get(inst) : undefined
+  return b && Date.now() - b.ts < FRESH_MS ? b : null
+}
+
 /** 订阅后端行情推送。断线自动重连（1s → 最多 15s）。bookInstrument 不为空时同时订阅该品种的盘口。 */
 export function useMarket(bookInstrument?: string) {
-  const [snap, setSnap] = useState<Snapshot | null>(null)
-  const [book, setBook] = useState<BookFrame | null>(null)
+  const [snap, setSnap] = useState<Snapshot | null>(freshSnap)
+  const [book, setBook] = useState<BookFrame | null>(() => freshBook(bookInstrument))
   const wsRef = useRef<WebSocket | null>(null)
   const bookRef = useRef(bookInstrument)
   bookRef.current = bookInstrument
   const [conn, setConn] = useState<Conn>('connecting')
-  const history = useRef(new Map<string, Point[]>())
+  const history = useRef(sharedHistory)
   const [version, setVersion] = useState(0)
 
   useEffect(() => {
@@ -42,9 +55,15 @@ export function useMarket(bookInstrument?: string) {
         } catch {
           return
         }
-        if ((s as unknown as BookFrame).type === 'book') { setBook(s as unknown as BookFrame); return }
+        if ((s as unknown as BookFrame).type === 'book') {
+          const f = s as unknown as BookFrame
+          lastBooks.set(f.instrument, f)
+          setBook(f)
+          return
+        }
         if (s.type !== 'snapshot') return
         const now = Date.now()
+        lastSnap = { at: now, s }
         for (const inst of s.instruments) {
           const v = Number(inst.last)
           if (!Number.isFinite(v) || v <= 0) continue
@@ -73,8 +92,11 @@ export function useMarket(bookInstrument?: string) {
     }
   }, [])
 
+  const first = useRef(true)
   useEffect(() => {
-    setBook(null)
+    // 换品种：有这个品种 15 秒以内的盘口就先显示，没有才清空等新的（第一次进来已经在 useState 里放好了）
+    if (first.current) first.current = false
+    else setBook(freshBook(bookInstrument))
     const ws = wsRef.current
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ book: bookInstrument ?? '' }))
   }, [bookInstrument])

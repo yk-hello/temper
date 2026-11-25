@@ -133,6 +133,30 @@ ok(!!(await p.locator('[data-2fa="off"]').waitFor({ timeout: 5000 }).then(() => 
 lr = await call(r3, 'POST', '/api/auth/login', { email: EMAIL, password: PASS })
 ok(lr.s === 200 && !lr.b?.need_2fa, '关掉后只要密码')
 ok(errs.length === 0, `页面没有报错（${errs.join(' | ').slice(0, 200)}）`)
+
+// 连接没加密的提醒（11-25）：本机打开没有；用 http 的外部网址打开时，登录页和忘记密码页都有
+{
+  const c1 = await ctx()
+  const q = await c1.newPage()
+  await q.goto(BASE + '/?page=login')
+  await q.waitForSelector('.au-card')
+  ok(await q.locator('[data-insecure]').count() === 0, '本机打开登录页：没有"连接没加密"')
+  await c1.close()
+  const c2 = await ctx()
+  // 假装是一个 http 的外部网址：请求转给测试环境（页面的来源还是 http://insecure.example，浏览器认为不加密）
+  await c2.route('http://insecure.example/**', async (route) => {
+    const u = new URL(route.request().url())
+    try { await route.fulfill({ response: await route.fetch({ url: BASE + u.pathname + u.search }) }) } catch { await route.abort() }
+  })
+  const q2 = await c2.newPage()
+  await q2.goto('http://insecure.example/?page=login')
+  await q2.waitForSelector('.au-card')
+  ok(await q2.locator('[data-insecure]').count() === 1 && /同一网络/.test(await q2.locator('[data-insecure]').innerText()), 'http 外部网址打开登录页：提醒"连接没加密"')
+  await q2.locator('[data-forgot]').click()
+  ok(await q2.locator('[data-insecure]').count() === 1, '忘记密码页也提醒')
+  await q2.screenshot({ path: `${OUT}/sec-insecure.png` })
+  await c2.close()
+}
 await browser.close()
 console.log(`\n${pass} 通过，${fail} 失败`)
 process.exit(fail ? 1 : 0)

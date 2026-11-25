@@ -13,7 +13,9 @@ interface SField { key: string; group: string; env: string; secret: boolean; sou
 interface Resp { fields: SField[]; crypt: boolean }
 type Ask = { title: string; body: string; ok: string; run: (pw: string) => Promise<unknown>; done: string }
 
-// 没有 Outlook：微软从 2024-09-16 起个人 Outlook 邮箱只认 OAuth2 登录，授权码发不了信
+// 没有 Outlook：微软从 2024-09-16 起个人 Outlook 邮箱只认 OAuth2 登录，授权码发不了信；Microsoft 365 从 2026 年底起默认也关掉
+// （11-25 又查了一遍；Gmail、QQ、163 的发信服务器都还接受授权码登录）。"其他"里填了微软的服务器直接标出来（后端 mailer.Microsoft 也拦）。
+const msHost = (h: string) => /(^|\.)(outlook|office365|hotmail|live)\.com\.?$/i.test(h.trim())
 const MAIL_PRESETS: { id: string; host: string; port: string; help?: string }[] = [
   { id: 'gmail', host: 'smtp.gmail.com', port: '465', help: 'https://myaccount.google.com/apppasswords' },
   { id: 'qq', host: 'smtp.qq.com', port: '465', help: 'https://mail.qq.com' },
@@ -105,7 +107,7 @@ function MailGroup({ f, save }: GroupProps) {
       <div className="fld sys-sel sys-preset"><span className="fld-l">{t('sys.provider')}</span><Select label={t('sys.provider')} value={preset} onChange={pick}
         options={MAIL_PRESETS.map((p) => ({ value: p.id, label: t(`sys.mp.${p.id}` as Key) }))} /></div>
       {preset === 'custom' && <div className="sys-row">
-        <Field label={t('sys.host')} value={host} onChange={setHost} placeholder="smtp.example.com" data-sys-key="mail.host" />
+        <Field label={t('sys.host')} value={host} onChange={setHost} placeholder="smtp.example.com" error={msHost(host) ? t('sys.msHost') : undefined} data-sys-key="mail.host" />
         <Field label={t('sys.port')} value={port} onChange={setPort} inputMode="numeric" hint={t('sys.portHint')} data-sys-key="mail.port" />
       </div>}
       <Field label={t('sys.mailUser')} value={user} onChange={setUser} placeholder="you@gmail.com" autoComplete="off" data-sys-key="mail.user" />

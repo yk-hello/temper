@@ -1,5 +1,7 @@
 // Package mailer 用部署的人自己的邮箱发信（D100 第 2 条）：填发信服务器、账号和授权码，不用另搭邮件服务。
-// Gmail、Outlook、QQ、163 这些都能用（要在邮箱设置里开 SMTP、拿授权码，不是登录密码）。
+// Gmail、QQ、163 这些都能用（要在邮箱设置里开 SMTP、拿授权码，不是登录密码）。
+// 微软的邮箱（Outlook、Hotmail、Microsoft 365）不行：个人邮箱从 2024-09-16 起发信只认 OAuth2 登录，
+// Microsoft 365 从 2026 年底起默认也关掉密码登录（2026-11-25 查过）。
 //
 // 465 端口直接走 TLS；587、25 端口先明文连上再升级（STARTTLS）。服务器不支持加密时拒绝发：
 // 不能把账号密码明文发到网上。唯一的例外是本机（127.0.0.1 / localhost），给测试和本机的收信工具用。
@@ -63,6 +65,20 @@ var ErrOff = errors.New("MAIL_OFF")
 
 func local(host string) bool { return host == "localhost" || host == "127.0.0.1" || host == "::1" }
 
+// ErrMicrosoft 填的是微软的发信服务器：用授权码发不了，不去白连一趟，直接说清楚。
+var ErrMicrosoft = errors.New("微软的邮箱（Outlook、Hotmail、Microsoft 365）已经不支持用密码或授权码发信，只能用 OAuth2 登录，这里用不了。请换 Gmail、QQ 或 163 邮箱")
+
+// Microsoft 是不是微软的发信服务器（smtp-mail.outlook.com、smtp.office365.com 这些）。
+func Microsoft(host string) bool {
+	h := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(host)), ".")
+	for _, d := range []string{"outlook.com", "office365.com", "hotmail.com", "live.com"} {
+		if h == d || strings.HasSuffix(h, "."+d) {
+			return true
+		}
+	}
+	return false
+}
+
 // Send 发一封纯文本邮件。
 func (c Config) Send(ctx context.Context, to, subject, body string) error {
 	if !c.Enabled() {
@@ -70,6 +86,9 @@ func (c Config) Send(ctx context.Context, to, subject, body string) error {
 	}
 	if _, err := mail.ParseAddress(to); err != nil {
 		return fmt.Errorf("收件地址不对：%w", err)
+	}
+	if Microsoft(c.Host) {
+		return ErrMicrosoft
 	}
 	timeout := c.Timeout
 	if timeout == 0 {
