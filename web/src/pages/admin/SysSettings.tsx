@@ -155,9 +155,9 @@ function AiGroup({ setAsk }: { setAsk: (a: Ask) => void }) {
   const del = (p: AiP) => setAsk({ title: t('ai.delTitle', { name: p.name }), body: t(p.id === d.active ? 'ai.delBodyOn' : 'ai.delBody'), ok: t('ai.del'),
     run: (pw) => api('POST', '/api/admin/ai/delete', { id: p.id, trade_password: pw }).then(load), done: t('ai.deleted') })
   const row = (key: string, name: string, meta: string, on: boolean, acts: ReactNode) => (
-    <li key={key} className={on ? 'ai-row on' : 'ai-row'} data-ai-row={key}>
-      <div className="ai-row-l"><span className="ai-name">{name}{on && <span className="ai-on" data-ai-on>{t('ai.on')}</span>}</span><span className="ai-meta">{meta}</span></div>
-      <div className="ai-row-r">{acts}</div>
+    <li key={key} className={on ? 'aiv-row on' : 'aiv-row'} data-ai-row={key}>
+      <div className="aiv-row-l"><span className="aiv-name">{name}{on && <span className="aiv-on" data-ai-on>{t('ai.on')}</span>}</span><span className="aiv-meta">{meta}</span></div>
+      <div className="aiv-row-r">{acts}</div>
       {msgs[key] && <p className={`sys-msg ${msgs[key]!.ok ? 'ok' : 'bad'}`} data-sys-msg role="status">{msgs[key]!.text}</p>}
     </li>
   )
@@ -167,7 +167,7 @@ function AiGroup({ setAsk }: { setAsk: (a: Ask) => void }) {
       <div className="ac-sec-l"><h2>{t('sys.ai')}</h2><p>{t('ai.hint')}</p></div>
       <div className="ac-sec-r">
         <p className="sys-src t3" data-sys-src>{cur ? t('ai.using', { name: cur.name }) : envOn ? t('ai.usingEnv') : t('ai.usingNone')}</p>
-        {(d.list.length > 0 || envOn) && <ul className="ai-list">
+        {(d.list.length > 0 || envOn) && <ul className="aiv-list">
           {d.list.map((p) => row(p.id, p.name, [fmtL(p.format), modelL(p), t('ai.efShort', { e: effL(p.effort) })].join(' · '), p.id === d.active, <>
             {p.id !== d.active && btn(t('ai.use'), () => use(p.id, p.name), 'data-ai-use')}
             {btn(t(busy === p.id ? 'sys.testing' : 'sys.test'), () => void test(p.id, { id: p.id }), 'data-ai-test', busy === p.id)}
@@ -209,30 +209,30 @@ function AiForm({ p, setP, msg, busy, onTest, onSave, onCancel }: { p: AiP; setP
   }
   const shown = models?.filter((m) => m.toLowerCase().includes(mq.trim().toLowerCase())) ?? []
   return (
-    <div className="ai-form" data-ai-form>
-      <p className="ai-form-h">{t(p.id ? 'ai.editing' : 'ai.adding')}</p>
+    <div className="aiv-form" data-ai-form>
+      <p className="aiv-form-h">{t(p.id ? 'ai.editing' : 'ai.adding')}</p>
       <div className="sys-fields">
         <Field label={t('ai.f.name')} value={p.name} onChange={(v) => set({ name: v })} placeholder={t('ai.f.nameHolder')} maxLength={40} data-ai-f="name" />
         <div className="fld sys-sel"><span className="fld-l">{t('ai.f.format')}</span><Select label={t('ai.f.format')} value={p.format} onChange={(v) => set({ format: v })}
           options={[{ value: 'openai', label: t('ai.fmt.openai') }, { value: 'anthropic', label: t('ai.fmt.anthropic') }]} /></div>
         <Field label={t('ai.f.base')} value={p.base} onChange={(v) => set({ base: v })} placeholder={c ? 'https://api.anthropic.com' : 'https://api.example.com/v1'} hint={t(c ? 'ai.f.baseHintC' : 'ai.f.baseHintO')} data-ai-f="base" />
         <Field label={t('ai.f.key')} type="password" reveal autoComplete="off" value={key} onChange={setKey} placeholder={p.key_hint ? t('sys.saved1', { v: p.key_hint }) : ''} hint={p.key_hint ? t('sys.keepHint') : undefined} data-ai-f="key" />
-        <div className="ai-model">
+        <div className="aiv-model">
           <Field label={t('ai.f.model')} value={p.model} onChange={(v) => set({ model: v })} placeholder={c ? 'claude-opus-5-5' : 'model-name'} hint={t(c ? 'ai.f.modelHintC' : 'ai.f.modelHintO')} data-ai-f="model" />
-          <button type="button" className="btn ghost sm ai-model-btn" onClick={() => void fetchModels()} disabled={mBusy} data-ai-models>{t(mBusy ? 'ai.modelsLoading' : 'ai.models')}</button>
+          <button type="button" className="btn ghost sm aiv-model-btn" onClick={() => void fetchModels()} disabled={mBusy} data-ai-models>{t(mBusy ? 'ai.modelsLoading' : 'ai.models')}</button>
         </div>
         {mErr && <p className="sys-msg bad" data-ai-models-err role="status">{mErr}</p>}
         {models && (
-          <div className="ai-models" data-ai-models-list>
-            <div className="ai-models-h">
-              <input className="ai-models-q" value={mq} onChange={(e) => setMq(e.target.value)} placeholder={t('ai.modelsFilter')} aria-label={t('ai.modelsFilter')} spellCheck={false} autoFocus data-ai-models-q />
-              <span className="ai-models-n">{t('ai.modelsN', { n: models.length })}</span>
+          <div className="aiv-models" data-ai-models-list>
+            <div className="aiv-models-h">
+              <input className="aiv-models-q" value={mq} onChange={(e) => setMq(e.target.value)} placeholder={t('ai.modelsFilter')} aria-label={t('ai.modelsFilter')} spellCheck={false} autoFocus data-ai-models-q />
+              <span className="aiv-models-n">{t('ai.modelsN', { n: models.length })}</span>
             </div>
             <ul>
               {shown.slice(0, 300).map((m) => (
                 <li key={m}><button type="button" className={m === p.model ? 'on' : ''} onClick={() => { set({ model: m }); setModels(null) }} data-ai-model={m}>{m}</button></li>
               ))}
-              {!shown.length && <li className="ai-models-none">{t('ai.modelsNone')}</li>}
+              {!shown.length && <li className="aiv-models-none">{t('ai.modelsNone')}</li>}
             </ul>
           </div>
         )}

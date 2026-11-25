@@ -359,33 +359,33 @@
 .sys-help { align-self: flex-start; margin-top: -6px; font-size: 12px; }
 .sys-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 /* AI 复盘点评的厂商列表（D112）：和系统页其他部分同一套发丝线框；正在用的那家底色深一档 */
-.ai-list { list-style: none; margin: 0 0 12px; padding: 0; max-width: 640px; border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); }
-.ai-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 10px 8px 10px 14px; border-top: var(--hair) solid var(--rule); }
-.ai-row:first-child { border-top: 0; }
-.ai-row.on { background: var(--void); }
-.ai-row-l { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ai-name { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--t1); font-size: 13px; font-weight: 500; white-space: nowrap; }
-.ai-on { flex: none; height: 18px; padding: 0 6px; border-radius: 2px; font-size: 11px; line-height: 18px; font-weight: 450; color: var(--t1); box-shadow: inset 0 0 0 var(--hair) var(--rule-3); }
-.ai-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--t3); }
-.ai-row-r { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px; }
-.ai-row .sys-msg { grid-column: 1 / -1; margin: 2px 0 0; }
-.ai-form { max-width: 640px; padding: 14px; border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); }
-.ai-form-h { margin: 0 0 12px; font-size: 13px; font-weight: 500; color: var(--t1); }
-.ai-form .sys-fields { max-width: none; }
-.ai-form .fld .seg { align-self: flex-start; }
-.ai-model { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px; }
-.ai-model-btn { margin-top: 22px; height: 40px; }
-.ai-models { border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); background: var(--void); }
-.ai-models-h { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: var(--hair) solid var(--rule); }
-.ai-models-q { flex: 1; min-width: 0; height: 28px; padding: 0 8px; border: 0; border-radius: var(--radius); background: var(--chassis); color: var(--t1); font: inherit; font-size: 12.5px; box-shadow: inset 0 0 0 var(--hair) var(--rule-2); outline: none; }
-.ai-models-q:focus { box-shadow: inset 0 0 0 1px var(--rule-3); }
-.ai-models-n { flex: none; font-size: 12px; color: var(--t3); }
-.ai-models ul { list-style: none; margin: 0; padding: 4px; max-height: 232px; overflow-y: auto; }
-.ai-models li button { display: block; width: 100%; padding: 5px 8px; border: 0; border-radius: var(--radius); background: none; color: var(--t2); font-size: 12.5px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ai-models li button:hover { background: var(--hover); color: var(--t1); }
-.ai-models li button.on { color: var(--t1); background: var(--plate); }
-.ai-models-none { padding: 8px; font-size: 12.5px; color: var(--t3); }
-@media (max-width: 560px) { .ai-row { grid-template-columns: minmax(0, 1fr); } .ai-row-r { justify-content: flex-start; margin-left: -8px; } }
+.aiv-list { list-style: none; margin: 0 0 12px; padding: 0; max-width: 640px; border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); }
+.aiv-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 10px 8px 10px 14px; border-top: var(--hair) solid var(--rule); }
+.aiv-row:first-child { border-top: 0; }
+.aiv-row.on { background: var(--void); }
+.aiv-row-l { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.aiv-name { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--t1); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.aiv-on { flex: none; height: 18px; padding: 0 6px; border-radius: 2px; font-size: 11px; line-height: 18px; font-weight: 450; color: var(--t1); box-shadow: inset 0 0 0 var(--hair) var(--rule-3); }
+.aiv-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--t3); }
+.aiv-row-r { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px; }
+.aiv-row .sys-msg { grid-column: 1 / -1; margin: 2px 0 0; }
+.aiv-form { max-width: 640px; padding: 14px; border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); }
+.aiv-form-h { margin: 0 0 12px; font-size: 13px; font-weight: 500; color: var(--t1); }
+.aiv-form .sys-fields { max-width: none; }
+.aiv-form .fld .seg { align-self: flex-start; }
+.aiv-model { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px; }
+.aiv-model-btn { margin-top: 22px; height: 40px; }
+.aiv-models { border-radius: var(--radius); box-shadow: inset 0 0 0 var(--hair) var(--rule-2); background: var(--void); }
+.aiv-models-h { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: var(--hair) solid var(--rule); }
+.aiv-models-q { flex: 1; min-width: 0; height: 28px; padding: 0 8px; border: 0; border-radius: var(--radius); background: var(--chassis); color: var(--t1); font: inherit; font-size: 12.5px; box-shadow: inset 0 0 0 var(--hair) var(--rule-2); outline: none; }
+.aiv-models-q:focus { box-shadow: inset 0 0 0 1px var(--rule-3); }
+.aiv-models-n { flex: none; font-size: 12px; color: var(--t3); }
+.aiv-models ul { list-style: none; margin: 0; padding: 4px; max-height: 232px; overflow-y: auto; }
+.aiv-models li button { display: block; width: 100%; padding: 5px 8px; border: 0; border-radius: var(--radius); background: none; color: var(--t2); font-size: 12.5px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aiv-models li button:hover { background: var(--hover); color: var(--t1); }
+.aiv-models li button.on { color: var(--t1); background: var(--plate); }
+.aiv-models-none { padding: 8px; font-size: 12.5px; color: var(--t3); }
+@media (max-width: 560px) { .aiv-row { grid-template-columns: minmax(0, 1fr); } .aiv-row-r { justify-content: flex-start; margin-left: -8px; } }
 .sys-msg { margin: 10px 0 0; max-width: 520px; font-size: 12.5px; line-height: 19px; }
 .sys-msg.ok { color: var(--up); }
 .sys-msg.bad { color: #ec8a84; }
