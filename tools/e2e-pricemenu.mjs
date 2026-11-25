@@ -28,10 +28,21 @@ const acct = (await call('GET', '/api/paper-accounts')).b.accounts[0].id
 await p.goto(BASE + '/?page=trade&i=BTC-PERP')
 await p.waitForSelector('.op-submit')
 await p.waitForTimeout(2500)
+const lastPx = async () => Number((await call('GET', '/api/market/snapshot')).b.instruments.find((i) => i.instrument === 'BTC-PERP').last)
+// 先造一段起伏（11-25）：回归脚本每组前清空测试库，K 线只有几分钟、价格范围很窄，现价常贴在图的上沿或下沿，
+// 找不到"现价上面 / 下面"的位置（用回归脚本跑连挂四次，单独跑却全过）。把模拟行情拨高 0.4%、拨低 0.4%、再拨回来，
+// 这根 K 线的最高、最低就把纵轴撑开，现价落在中间
+{
+  const p0 = await lastPx()
+  for (const k of [1.004, 0.996, 1]) {
+    await call('POST', '/api/dev/sim-price', { instrument: 'BTC-PERP', price: Number((p0 * k).toFixed(1)) })
+    await p.waitForTimeout(1200)
+  }
+  await p.waitForTimeout(1500)
+}
 const cv = p.locator('.mk-chart .surface canvas.interactive').first()
 const box = await cv.boundingBox()
 const at = (fy) => ({ x: box.x + box.width * 0.5, y: box.y + box.height * fy })
-const lastPx = async () => Number((await call('GET', '/api/market/snapshot')).b.instruments.find((i) => i.instrument === 'BTC-PERP').last)
 // 在图上找一个价位在现价下面（或上面）的点右键（现价在纵轴上的位置不固定：链上爆仓价会把纵轴拉开，现价可能在很靠下的地方；按菜单里的价判断；最下面成交量那一条不出菜单）
 const menuOn = async (want) => {
   // 行情平静时图上下只留一成的空（价格的万分之几），步子小一点才点得到（11-16）
