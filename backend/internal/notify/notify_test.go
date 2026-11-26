@@ -593,6 +593,10 @@ func TestRender(t *testing.T) {
 		{KRecon, map[string]string{"what": "ok", "account": "Main"}},
 		{KStrat, map[string]string{"strategy": "my-strat", "targets": "BTC-PERP:0.3:0.7,ETH-PERP:-0.1:0.55,SOL-PERP:0:0", "more": "2", "reason": "均线金叉", "reason_en": "MA cross"}},
 		{KStrat, map[string]string{"strategy": "my-strat", "targets": "BTC-PERP:0.25"}},
+		{KOff, map[string]string{"strategy": "my-strat", "state": "off", "role": "own", "mins": "3"}},
+		{KOff, map[string]string{"strategy": "my-strat", "state": "off", "role": "follow", "mins": "3"}},
+		{KOff, map[string]string{"strategy": "my-strat", "state": "on", "role": "own", "mins": "61"}},
+		{KOff, map[string]string{"strategy": "my-strat", "state": "on", "role": "follow", "mins": "61"}},
 		{KRecap, map[string]string{"acct": "Paper 1", "day": "2026-11-11", "closed": "3", "wins": "2", "losses": "1", "realized": "12.30", "fees": "1.20", "funding": "-0.10", "net": "11.00", "fills": "8"}},
 	}
 	seen := map[string]bool{}
@@ -630,5 +634,30 @@ func TestNumFormat(t *testing.T) {
 	}
 	if got := signed("12345.5"); got != "+12,345.5" {
 		t.Errorf("signed = %q", got)
+	}
+}
+
+// 策略掉线、恢复（D117）：主人和跟着的人写法不一样；时长按天、小时、分钟写
+func TestOffText(t *testing.T) {
+	off := map[string]string{"strategy": "my-rule", "state": "off", "role": "own", "mins": "3"}
+	for _, c := range []struct {
+		lang string
+		p    map[string]string
+		want string
+	}{
+		{"zh", off, "你的策略 my-rule 已经 3 分钟没有心跳，判定离线。平台保持现在的仓位，止损照常；看一下程序是不是停了。"},
+		{"zh", map[string]string{"strategy": "x", "state": "off", "role": "follow", "mins": "125"}, "你跟着的策略 x 已经 2 小时 5 分钟没有心跳，判定离线。你的账户保持现在的仓位，止损照常；它恢复以前不会再调仓。"},
+		{"zh", map[string]string{"strategy": "x", "state": "on", "role": "own", "mins": "1500"}, "你的策略 x 恢复在线，中间离线了 1 天 1 小时。"},
+		{"zh", map[string]string{"strategy": "x", "state": "on", "role": "follow", "mins": "120"}, "你跟着的策略 x 恢复在线，中间离线了 2 小时。"},
+		{"en", off, "Your strategy my-rule has sent no heartbeat for 3 min and is marked offline. Positions are held and stop losses still work; check whether your program has stopped."},
+		{"en", map[string]string{"strategy": "x", "state": "on", "role": "follow", "mins": "2880"}, "x, a strategy you follow, is back online after 2 d offline."},
+	} {
+		if got := Render(c.lang, KOff, c.p); got != c.want {
+			t.Errorf("%s %v\n得到 %s\n应该 %s", c.lang, c.p, got, c.want)
+		}
+	}
+	s := New(nil)
+	if p := s.prefOf(9, KOff); !p.Site || !p.TG || !p.WH || !p.ML {
+		t.Errorf("默认站内、Telegram、Webhook、邮件都开：%+v", p)
 	}
 }

@@ -43,6 +43,7 @@ export function noticeText(n: NoticeItem): string {
     case 'login_new': return p.event === 'tp_reset' ? tr('nt.tpReset') : tr('nt.login', { device: p.device ?? '', ip: p.ip ? tr('nt.loginIp', { ip: p.ip }) : '' }) // 二级密码被重置也是这一类（D107）
     case 'live_recon': return reconText(p, coin)
     case 'strategy_signal': return stratText(p)
+    case 'strategy_offline': return tr(`nt.${p.state === 'on' ? 'on' : 'off'}.${p.role === 'follow' ? 'follow' : 'own'}` as Key, { strategy: p.strategy ?? '', d: durText(Number(p.mins)) })
     case 'daily_recap': return tr('nt.recap', { acct, day: p.day ?? '', closed: p.closed ?? '0', wins: p.wins ?? '0', losses: p.losses ?? '0', realized: signed(p.realized), fees: amt(p.fees ?? '0'), funding: signed(p.funding), net: signed(p.net), fills: p.fills ?? '0' })
     case 'bot_error': return tr('nt.bot', { coin, why: botWhy(p.reason) })
     case 'price_alert': return tr(p.dir === 'up' ? 'nt.priceUp' : 'nt.priceDown', { coin, px: px(p.px) })
@@ -83,6 +84,15 @@ function reconText(p: Record<string, string>, coin: string): string {
   }
 }
 
+/** 分钟数写成"2 小时 5 分钟""3 天 4 小时"（和后端 notify.minsText 一样，D117） */
+function durText(mins: number): string {
+  const all = Math.max(1, Number.isFinite(mins) ? Math.floor(mins) : 1)
+  const d = Math.floor(all / 1440), h = Math.floor((all % 1440) / 60), m = all % 60
+  if (d > 0) return h > 0 ? tr('nt.dur.dh', { d, h }) : tr('nt.dur.d', { d })
+  if (h > 0) return m > 0 ? tr('nt.dur.hm', { h, m }) : tr('nt.dur.h', { h })
+  return tr('nt.dur.m', { m })
+}
+
 /** 自己的策略发了新的目标仓位（18 第 8.4 条）：平台只转达。targets = "品种:权重:信心,…" */
 function stratText(p: Record<string, string>): string {
   const parts = (p.targets ?? '').split(',').filter(Boolean).map((x) => {
@@ -110,7 +120,8 @@ export function useNotices(on: boolean) {
       const top = r.items[0]?.id ?? 0
       if (lastId) {
         for (const n of [...r.items].reverse()) {
-          if (n.id > lastId && (isSafety(n.kind) || n.kind === 'price_alert' || n.kind === 'rule_alert')) toastNotice(noticeText(n))
+          const offline = n.kind === 'strategy_offline' && n.params?.state !== 'on' // 策略掉线也弹出来（D117），恢复的不弹
+          if (n.id > lastId && (isSafety(n.kind) || offline || n.kind === 'price_alert' || n.kind === 'rule_alert')) toastNotice(noticeText(n))
           if (n.id > lastId && n.kind === 'highlight') window.dispatchEvent(new CustomEvent('qs:highlight', { detail: n.params ?? {} }))
         }
       }

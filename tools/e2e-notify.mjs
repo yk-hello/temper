@@ -91,7 +91,7 @@ ok(await p.locator('[data-bell-pop]').count() === 0, '按 Esc 关掉')
 // ---------- 设置 ----------
 await p.goto(`${BASE}/?page=account&sec=notify`)
 await p.waitForSelector('[data-notify] tbody tr', { timeout: 10000 })
-ok(await p.locator('[data-notify] tbody tr').count() === 16, '16 种事件（含每日复盘、我的策略调仓、条件提醒）')
+ok(await p.locator('[data-notify] tbody tr').count() === 17, '17 种事件（含每日复盘、策略离线、我的策略调仓、条件提醒）')
 const on = (k, col) => p.locator(`[data-pref=${k}] td:nth-child(${col}) input`).isChecked()
 ok(await on('liq_warn', 2) && await on('margin_high', 2) && await on('discipline_lock', 2) && await on('bot_error', 2), '强平、保证金率、纪律锁、机器人默认开')
 ok(!(await on('fill', 2)) && !(await on('whale', 2)) && !(await on('econ', 2)) && !(await on('stop_hit', 2)) && !(await on('follow_stop', 2)), '成交、大户、经济事件、止盈止损、跟随默认关')

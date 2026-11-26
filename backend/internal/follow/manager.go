@@ -1516,6 +1516,22 @@ func (m *Manager) Stats(strategy string) (followers int, capital decimal.Decimal
 	return len(users), capital
 }
 
+// Followers 正在跟这个策略的人（暂停的、停了的不算），从小到大排好。策略掉线提醒用（D117）。
+func (m *Manager) Followers(strategy string) []int64 {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	seen := map[int64]bool{}
+	var out []int64
+	for _, f := range m.follows {
+		if f.Strategy == strategy && f.Status == StActive && !seen[f.User] {
+			seen[f.User] = true
+			out = append(out, f.User)
+		}
+	}
+	slices.Sort(out)
+	return out
+}
+
 // AccountRunning 这个账户正在跟 AI 吗。
 // RunningCount 正在跟的数量（系统控制台）。
 func (m *Manager) RunningCount() int {

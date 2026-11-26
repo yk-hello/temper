@@ -53,7 +53,7 @@ The rationale is shown in the decision feed on the strategies page.
 ### heartbeat
 - Fields: `status` (ok / degraded / paused), optional `note`
 - Send every 30–60 seconds
-- After 180 seconds without one, the strategy is marked offline: positions stay, stops keep working, and the UI shows "strategy offline" (push alerts for this are not built yet)
+- After 180 seconds without one (a signal also counts), the strategy is marked offline: positions stay, stops keep working, the UI shows "strategy offline", and the strategy's owner and everyone following it get a notification under their notification settings; another one follows when it is back. A strategy that has never sent a heartbeat triggers none
 
 ### halt
 - Fields: `action` (`flatten_all`: close everything and pause; `pause`: no new exposure, positions untouched), `reason.zh`

@@ -2828,7 +2828,6 @@ export const zh = {
   'ntk.strategy_signal.sub': "你自己建的策略发了新目标时提醒你（只提醒，不下单）",
   'ntk.daily_recap': "每日复盘",
   'ntk.daily_recap.sub': "昨天有成交的账户：盈亏、手续费、成交笔数（UTC 零点后发）",
-  'mys.pushHint': "策略每次发新目标，会按\"通知\"里\"我的策略调仓\"的设置提醒你（站内、Telegram、邮件、Webhook）：只提醒，不下单。想让它自动下单，在策略页点\"跟随\"。",
   'td.news': "新闻",
   'td.newsSub': "只有标题，点开去原网站看",
   'td.newsCoin': "按币筛",
@@ -3144,6 +3143,18 @@ export const zh = {
   'err.BAD_AI': "有一项填得不对：OpenAI 兼容的要填接口地址（http:// 或 https:// 开头）和模型名；名字最多 40 个字；模型名不能有空格。",
   'err.AI_NO_KEY': "还没填密钥",
   'err.TOO_MANY': "最多 20 家",
+  'ntk.strategy_offline': "策略离线",
+  'ntk.strategy_offline.sub': "你的策略或正在跟的策略 3 分钟没有心跳时，以及恢复时",
+  'nt.off.own': "你的策略 {strategy} 已经 {d}没有心跳，判定离线。平台保持现在的仓位，止损照常；看一下程序是不是停了。",
+  'nt.off.follow': "你跟着的策略 {strategy} 已经 {d}没有心跳，判定离线。你的账户保持现在的仓位，止损照常；它恢复以前不会再调仓。",
+  'nt.on.own': "你的策略 {strategy} 恢复在线，中间离线了 {d}。",
+  'nt.on.follow': "你跟着的策略 {strategy} 恢复在线，中间离线了 {d}。",
+  'nt.dur.m': "{m} 分钟",
+  'nt.dur.h': "{h} 小时",
+  'nt.dur.hm': "{h} 小时 {m} 分钟",
+  'nt.dur.d': "{d} 天",
+  'nt.dur.dh': "{d} 天 {h} 小时",
+  'mys.pushHint': "策略每次发新目标，会按\"通知\"里\"我的策略调仓\"的设置提醒你（站内、Telegram、邮件、Webhook）：只提醒，不下单。3 分钟没收到心跳会按\"策略离线\"提醒你，恢复时再提醒一次。想让它自动下单，在策略页点\"跟随\"。",
 } as const
 
 export type Key = keyof typeof zh

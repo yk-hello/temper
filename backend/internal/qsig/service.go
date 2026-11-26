@@ -86,7 +86,7 @@ const (
 	maxSkew       = 30 * time.Second
 	maxValidAhead = 5 * time.Minute
 	ratePerMin    = 30
-	offlineAfter  = 180 * time.Second
+	OfflineAfter  = 180 * time.Second // 超过这么久没有心跳（发出的信号也算）判定离线；策略页和掉线提醒用同一条线（D117）
 	weightLimit   = 2
 )
 
@@ -599,7 +599,7 @@ func (s *Service) status() []StrategyStatus {
 		st := snap[id]
 		pf := s.Portfolio(id)
 		h, reason := pf.Halted()
-		out = append(out, StrategyStatus{StrategyID: id, Online: !st.lastHeartbeat.IsZero() && s.Now().Sub(st.lastHeartbeat) <= offlineAfter,
+		out = append(out, StrategyStatus{StrategyID: id, Online: !st.lastHeartbeat.IsZero() && s.Now().Sub(st.lastHeartbeat) <= OfflineAfter,
 			LastHeartbeat: unixMilli(st.lastHeartbeat), Heartbeat: st.hbStatus, Note: st.hbNote, Halted: h, HaltReason: reason, Sample: id == DemoStrategyID, Breaker: pf.Breaker()})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].StrategyID < out[j].StrategyID })

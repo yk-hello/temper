@@ -1290,6 +1290,27 @@ func main() {
 			log.Error("通知表", "err", err)
 		}
 		notifier.StartWebhooks(ctx)
+		// 策略掉线提醒（D117）：3 分钟没有心跳提醒主人和正在跟的人，恢复时再提醒一次（offline_wire.go）
+		go (&offlineWatch{Pool: database.Pool, N: notifier, Status: svc.Status, Followers: followers.Followers, Log: log,
+			Owner: func(c context.Context, id string) int64 {
+				if id == qsig.DemoStrategyID {
+					return 0
+				}
+				var owner int64
+				if stratStore.Reserved(id) { // 配置里写的：部署的人，也就是所有者（第一个注册的账号，D113）
+					if database.Pool.QueryRow(c, `select coalesce(min(id), 0) from users`).Scan(&owner) != nil {
+						return 0
+					}
+					return owner
+				}
+				if stratStore.Pool == nil {
+					return 0
+				}
+				if owner, err := stratStore.Owner(c, id); err == nil {
+					return owner
+				}
+				return 0
+			}}).run(ctx, tradingReady.Load)
 		// 每日复盘（18 第 8.4 条）：UTC 零点过后，把昨天有动静的账户（模拟账户和交易所账户）的流水推给主人
 		go runRecaps(ctx, database.Pool, notifier, func(c context.Context) []recapAcct {
 			var out []recapAcct

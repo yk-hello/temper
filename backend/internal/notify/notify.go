@@ -23,28 +23,29 @@ import (
 
 // 事件种类。
 const (
-	KLiq    = "liq_warn"        // 快到强平价、已被强平
-	KMargin = "margin_high"     // 保证金率过高
-	KLock   = "discipline_lock" // 纪律锁触发
-	KBot    = "bot_error"       // 机器人被暂停
-	KPrice  = "price_alert"     // 用户自己设的到价提醒
-	KFill   = "fill"            // 成交
-	KStop   = "stop_hit"        // 止盈止损触发
-	KFollow = "follow_stop"     // 跟随自动停止
-	KWhale  = "whale"           // 链上大户动作
-	KEcon   = "econ"            // 经济事件前一小时
-	KHigh   = "highlight"       // 高光时刻（D88）
-	KLogin  = "login_new"       // 用一个新设备登录了（18 第 6.2 条）
-	KRecon  = "live_recon"      // 交易所账户对账发现对不上（18 第 6.4 条）
-	KStrat  = "strategy_signal" // 自己建的策略发了新的目标仓位：只提醒，不下单（18 第 8.4 条，D100 第 1 条）
-	KRecap  = "daily_recap"     // 每日复盘：昨天（UTC）这个账户的盈亏、手续费、成交（18 第 8.4 条）
+	KLiq    = "liq_warn"         // 快到强平价、已被强平
+	KMargin = "margin_high"      // 保证金率过高
+	KLock   = "discipline_lock"  // 纪律锁触发
+	KBot    = "bot_error"        // 机器人被暂停
+	KPrice  = "price_alert"      // 用户自己设的到价提醒
+	KFill   = "fill"             // 成交
+	KStop   = "stop_hit"         // 止盈止损触发
+	KFollow = "follow_stop"      // 跟随自动停止
+	KWhale  = "whale"            // 链上大户动作
+	KEcon   = "econ"             // 经济事件前一小时
+	KHigh   = "highlight"        // 高光时刻（D88）
+	KLogin  = "login_new"        // 用一个新设备登录了（18 第 6.2 条）
+	KRecon  = "live_recon"       // 交易所账户对账发现对不上（18 第 6.4 条）
+	KStrat  = "strategy_signal"  // 自己建的策略发了新的目标仓位：只提醒，不下单（18 第 8.4 条，D100 第 1 条）
+	KRecap  = "daily_recap"      // 每日复盘：昨天（UTC）这个账户的盈亏、手续费、成交（18 第 8.4 条）
+	KOff    = "strategy_offline" // 自己的或正在跟的策略 3 分钟没有心跳，以及恢复时（D117）
 )
 
 // Kinds 设置页的顺序。
-var Kinds = []string{KLiq, KMargin, KLock, KRecon, KLogin, KRecap, KStrat, KBot, KPrice, KRule, KHigh, KStop, KFill, KFollow, KWhale, KEcon}
+var Kinds = []string{KLiq, KMargin, KLock, KRecon, KLogin, KRecap, KOff, KStrat, KBot, KPrice, KRule, KHigh, KStop, KFill, KFollow, KWhale, KEcon}
 
 // 默认打开的（D85 第 4 条）。到价提醒是用户自己设的，到期提醒是 `01` 定的，也开着。
-var defaultOn = map[string]bool{KLiq: true, KMargin: true, KLock: true, KRecon: true, KLogin: true, KRecap: true, KStrat: true, KBot: true, KPrice: true, KRule: true}
+var defaultOn = map[string]bool{KLiq: true, KMargin: true, KLock: true, KRecon: true, KLogin: true, KRecap: true, KOff: true, KStrat: true, KBot: true, KPrice: true, KRule: true}
 
 // IsSafety 安全类通知（强平、保证金、纪律锁）：保护用户的钱，始终可以发 Telegram（D85 第 3 条；收费套餐已按 D90 取消）。
 func IsSafety(kind string) bool {
@@ -208,7 +209,7 @@ func (s *Service) prefOf(user int64, kind string) Pref {
 	if kind == KHigh { // 高光默认只在站内（相册里也看得到），Telegram 自己打开（D88）
 		return Pref{Site: true}
 	}
-	return Pref{Site: on, TG: on, WH: on, ML: IsSafety(kind) || kind == KRecap} // 每日复盘一天最多一封，默认也发邮件
+	return Pref{Site: on, TG: on, WH: on, ML: IsSafety(kind) || kind == KRecap || kind == KOff} // 每日复盘一天最多一封；策略掉线时人多半不在页面前，默认也发邮件
 }
 
 // Wants 有人打开了这种事件吗（大户动作、经济事件是广播的，只发给打开的人）。
@@ -764,6 +765,8 @@ func Render(lang, kind string, p map[string]string) string {
 		return reconText(en, coin, p)
 	case KStrat:
 		return stratText(en, p)
+	case KOff:
+		return offText(en, p)
 	case KRecap:
 		return recapText(en, p)
 	case "test": // 对外 Webhook 的测试消息
@@ -1011,6 +1014,56 @@ func stratText(en bool, p map[string]string) string {
 		why = "它给的理由：" + why + "。"
 	}
 	return fmt.Sprintf("你的策略 %s 发了新目标：%s%s。%s平台只转达，没有替你下单。", p["strategy"], strings.Join(parts, "、"), more, why)
+}
+
+// offText 策略掉线、恢复（D117）。state = off / on，role = own（自己的，包括部署时配置的）/ follow（正在跟的），
+// mins = 离线时是"多久没有心跳"，恢复时是"中间离线了多久"（分钟）。
+func offText(en bool, p map[string]string) string {
+	m, _ := strconv.ParseInt(p["mins"], 10, 64)
+	d, s := minsText(en, m), p["strategy"]
+	follow := p["role"] == "follow"
+	switch {
+	case p["state"] == "on" && en && follow:
+		return fmt.Sprintf("%s, a strategy you follow, is back online after %s offline.", s, d)
+	case p["state"] == "on" && en:
+		return fmt.Sprintf("Your strategy %s is back online after %s offline.", s, d)
+	case p["state"] == "on" && follow:
+		return fmt.Sprintf("你跟着的策略 %s 恢复在线，中间离线了 %s。", s, d)
+	case p["state"] == "on":
+		return fmt.Sprintf("你的策略 %s 恢复在线，中间离线了 %s。", s, d)
+	case en && follow:
+		return fmt.Sprintf("%s, a strategy you follow, has sent no heartbeat for %s and is marked offline. Your account keeps its positions and stop losses still work; it will not rebalance until the strategy is back.", s, d)
+	case en:
+		return fmt.Sprintf("Your strategy %s has sent no heartbeat for %s and is marked offline. Positions are held and stop losses still work; check whether your program has stopped.", s, d)
+	case follow:
+		return fmt.Sprintf("你跟着的策略 %s 已经 %s没有心跳，判定离线。你的账户保持现在的仓位，止损照常；它恢复以前不会再调仓。", s, d)
+	}
+	return fmt.Sprintf("你的策略 %s 已经 %s没有心跳，判定离线。平台保持现在的仓位，止损照常；看一下程序是不是停了。", s, d)
+}
+
+// minsText 分钟数写成"2 小时 5 分钟""3 天 4 小时"；英文写 "2 h 5 min"。和界面（web/src/lib/notify.ts 的 durText）一样。
+func minsText(en bool, m int64) string {
+	if m < 1 {
+		m = 1
+	}
+	d, h, mm := m/1440, m%1440/60, m%60
+	unit := func(n int64, zh, eng string) string {
+		if en {
+			return strconv.FormatInt(n, 10) + " " + eng
+		}
+		return strconv.FormatInt(n, 10) + " " + zh
+	}
+	switch {
+	case d > 0 && h > 0:
+		return unit(d, "天", "d") + " " + unit(h, "小时", "h")
+	case d > 0:
+		return unit(d, "天", "d")
+	case h > 0 && mm > 0:
+		return unit(h, "小时", "h") + " " + unit(mm, "分钟", "min")
+	case h > 0:
+		return unit(h, "小时", "h")
+	}
+	return unit(mm, "分钟", "min")
 }
 
 // recapText 每日复盘：只摆昨天（UTC）的数，不评价。
