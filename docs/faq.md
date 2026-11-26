@@ -122,4 +122,4 @@ docker compose exec db pg_dump -U qs qs > backup.sql
 拉新代码，然后 `docker compose up -d`（每次启动都会按现在的代码构建，没改动时用缓存，半分钟左右）。数据库的表会自动升级。
 
 **发现了问题，或者想加功能。**
-见 [CONTRIBUTING.md](../CONTRIBUTING.md)。安全问题请私下联系维护者，不要公开提。
+见 [参与开发](../CONTRIBUTING.zh-CN.md)。安全问题请私下联系维护者，不要公开提。
