@@ -20,6 +20,8 @@ export interface InstrumentState {
   low_24h: string
   trades: number
   updated_at: number
+  /** 最后一笔成交的时间（updated_at 盘口、标记价格也会改）：K 线最后一根跟着实时价走时用它判断落在哪一根 */
+  last_at?: number
 }
 
 export interface SourceStatus {

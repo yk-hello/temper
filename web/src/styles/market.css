@@ -70,7 +70,7 @@
 /* 放不下下一档时，多出来的高度平均分给每一档，底下不留空 */
 .ob:not(.ob-compact):not(.tr) .ob-r { height: auto; flex: 1 1 20px; max-height: 26px; }
 .ob-h span:first-of-type, .ob-r span:first-of-type { text-align: left; }
-.ob-r i, .ob-r b { position: absolute; right: 0; top: 1px; bottom: 1px; pointer-events: none; transition: width 200ms var(--ease); }
+.ob-r i, .ob-r b { position: absolute; right: 0; top: 1px; bottom: 1px; pointer-events: none; transition: width 100ms var(--ease); } /* 和 0.1 秒一次的推送对齐，不然深度条一直追不上 */
 .ob-r b { opacity: 0.35; }
 .ob-r.ask i, .ob-r.ask b { background: rgba(226, 98, 92, 0.16); }
 .ob-r.bid i, .ob-r.bid b { background: rgba(76, 185, 138, 0.16); }

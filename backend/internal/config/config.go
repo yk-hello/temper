@@ -47,7 +47,7 @@ func Load() Config {
 		DatabaseURL:    env("DATABASE_URL", ""),
 		MarketSource:   strings.ToLower(env("MARKET_SOURCE", "binance")),
 		Symbols:        upper(list(env("SYMBOLS", "BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT,DOGEUSDT"))),
-		PushInterval:   time.Duration(envInt("PUSH_INTERVAL_MS", 200)) * time.Millisecond,
+		PushInterval:   time.Duration(envInt("PUSH_INTERVAL_MS", 100)) * time.Millisecond, // 0.1 秒：和币安盘口最快的 100ms 一档对齐（11-26 用户："改成 0.1 秒"）
 		AllowedOrigins: list(env("ALLOWED_ORIGINS", "localhost:*,127.0.0.1:*")),
 		BrandName:      env("BRAND_NAME", "Temper"),
 		QsigKeys:       env("QSIG_KEYS", ""),

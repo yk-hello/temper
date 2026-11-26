@@ -1,24 +1,28 @@
 // K 线数据（从 pages/Market.tsx 搬出来：交易页主图、多图同屏的小图、首页都用）。
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Candle } from './demo'
+import { IV_MS, withLive, type LiveExt } from './liveBar'
 
 /**
  * K 线：先取最新 300 根；之后每秒（1 秒线）或每 2 秒只取最新的几根合并进来；
  * 往左拖快到头时 more() 再取更早的 300 根（后端内存里没有的从交易所补）。
+ * live：这个品种的实时行情（0.1 秒推一次）；给了的话，最后一根 K 线跟着它的最新成交价走（lib/liveBar.ts）。
  */
-export function useCandles(instrument: string | undefined, iv: string): { bars: Candle[]; more: (firstT: number) => void } {
+export function useCandles(instrument: string | undefined, iv: string, live?: { last?: string; last_at?: number } | null): { bars: Candle[]; more: (firstT: number) => void } {
   const [bars, setBars] = useState<Candle[]>([])
   const ref = useRef<Candle[]>([])
   const hist = useRef({ loading: false, done: false, asked: 0 })
   const key = `${instrument}|${iv}`
   const keyRef = useRef(key)
   keyRef.current = key
+  const ext = useRef<LiveExt | null>(null)
   type Raw = { t: number; o: number; h: number; l: number; c: number; vb: number; vs: number }
   const conv = (b: Raw): Candle => ({ t: b.t, o: b.o, h: b.h, l: b.l, c: b.c, vb: b.vb, vs: b.vs })
   useEffect(() => {
     ref.current = []
     setBars([])
     hist.current = { loading: false, done: false, asked: 0 }
+    ext.current = null
     if (!instrument) return
     let alive = true
     let lastTick = Date.now()
@@ -67,5 +71,7 @@ export function useCandles(instrument: string | undefined, iv: string): { bars: 
       .catch(() => { h.asked = 0 })
       .finally(() => { h.loading = false })
   }, [instrument, iv, key])
-  return { bars, more }
+  const px = Number(live?.last), at = live?.last_at ?? 0, ivMs = IV_MS[iv] ?? 0 // 没有 last_at（老后端）就不跟
+  const merged = useMemo(() => withLive(bars, px, at, ivMs, ext), [bars, px, at, ivMs])
+  return { bars: merged, more }
 }

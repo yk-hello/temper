@@ -47,7 +47,7 @@ S="$W/shots/full"; B=http://127.0.0.1:4173
 BASE=http://127.0.0.1:18000 run follow node e2e-follow.mjs --restart-cmd "$RESTART"
 run audit node e2e-audit.mjs --restart-cmd "$RESTART"
 run +uiaudit node e2e-ui-audit.mjs "$S"
-for n in +account +trade m3 m4 chart +heat +flow +chain review spot bots signal algo visuals notify latency backtest +scan live switcher navspeed highlight admin strategy pwa binapi pricemenu webhook security mail news hotkeys grid riskhist rules pivot paperfunds binrules sysset aifake webkit; do
+for n in +account +trade m3 m4 chart +heat +flow +chain review spot bots signal algo visuals notify latency backtest +scan live switcher navspeed livebar highlight admin strategy pwa binapi pricemenu webhook security mail news hotkeys grid riskhist rules pivot paperfunds binrules sysset aifake webkit; do
   run "$n" node "e2e-${n#+}.mjs" "$S" "$B"
 done
 echo done >> "$L/summary.txt"

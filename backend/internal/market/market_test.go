@@ -135,3 +135,19 @@ func TestParseHyperliquid(t *testing.T) {
 		t.Fatalf("ctx: %+v", evs)
 	}
 }
+
+// 最后一笔成交的时间只跟着成交走：盘口、标记价格、24 小时统计只改 UpdatedAt（前端拿 LastAt 判断实时价落在哪一根 K 线）
+func TestHubLastAtFollowsTradesOnly(t *testing.T) {
+	h := NewHub([]string{"BTC-PERP"}, time.Hour)
+	h.Publish(Event{Kind: KindTrade, Instrument: "BTC-PERP", Price: "100", Side: Buy, Time: 60_000})
+	h.Publish(Event{Kind: KindBook, Instrument: "BTC-PERP", Bid: "99", Ask: "101", Time: 120_500})
+	h.Publish(Event{Kind: KindMark, Instrument: "BTC-PERP", Mark: "100.1", Time: 121_000})
+	st := h.Snapshot().Instruments[0]
+	if st.LastAt != 60_000 || st.UpdatedAt != 121_000 {
+		t.Fatalf("LastAt = %d（应 60000），UpdatedAt = %d（应 121000）", st.LastAt, st.UpdatedAt)
+	}
+	h.Publish(Event{Kind: KindTrade, Instrument: "BTC-PERP", Price: "100.2", Side: Sell, Time: 121_200})
+	if st := h.Snapshot().Instruments[0]; st.LastAt != 121_200 || st.Last != "100.2" {
+		t.Fatalf("新成交以后 LastAt = %d、Last = %s", st.LastAt, st.Last)
+	}
+}

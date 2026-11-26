@@ -119,7 +119,7 @@ export default function Market() {
   const groupedBook = useMemo(() => (book && bookGroup > 0 ? { ...book, asks: groupBook(book.asks, bookGroup, true), bids: groupBook(book.bids, bookGroup, false) } : book), [book, bookGroup])
   const ivWant = IVS.find((x) => x.value === ivKey)!
   const iv = mode === 'flow' && ivWant.ms < 60_000 ? IVS[1] : ivWant // 足迹图最短 1 分钟
-  const { bars: candles, more } = useCandles(cur?.instrument, iv.value)
+  const { bars: candles, more } = useCandles(cur?.instrument, iv.value, cur) // 最后一根跟着 0.1 秒的实时价走
   // 多图同屏（18 第 9.2 条）：宽屏、K 线模式才分格
   const grid = useGrid(spot, cur?.instrument, instruments)
   const gridOn = mode === 'candle' && !narrow && grid.n > 1

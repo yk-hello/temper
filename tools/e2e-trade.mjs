@@ -46,7 +46,7 @@ ok(sb && sb.y + sb.height <= 730, '下单按钮在屏幕内')
 await page.screenshot({ path: `${OUT}/t-01-market.png` })
 
 // 点盘口买一价 → 填进限价
-// 盘口每 200 毫秒刷新：读价格和按下必须在同一刻做，否则读到的和点到的可能不是同一个价
+// 盘口每 100 毫秒刷新：读价格和按下必须在同一刻做，否则读到的和点到的可能不是同一个价
 const bidTxt = (await page.evaluate(() => {
   const r = document.querySelector('.ob-r.bid')
   const t = r.querySelector('span').textContent

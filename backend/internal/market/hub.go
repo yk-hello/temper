@@ -76,7 +76,7 @@ func (h *Hub) Publish(ev Event) {
 	}
 	switch ev.Kind {
 	case KindTrade:
-		st.Last, st.LastSide = ev.Price, ev.Side
+		st.Last, st.LastSide, st.LastAt = ev.Price, ev.Side, ev.Time
 		st.Trades++
 	case KindBook:
 		st.Bid, st.BidQty, st.Ask, st.AskQty = ev.Bid, ev.BidQty, ev.Ask, ev.AskQty
@@ -166,6 +166,9 @@ func (h *Hub) Subscribe() (*Subscriber, func()) {
 		h.mu.Unlock()
 	}
 }
+
+// Interval 合并推送的间隔（盘口推送也用它）。
+func (h *Hub) Interval() time.Duration { return h.interval }
 
 // Run 按间隔推送，直到 ctx 取消。
 func (h *Hub) Run(ctx context.Context) {

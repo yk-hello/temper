@@ -70,6 +70,7 @@ type InstrumentState struct {
 	Low24h          string `json:"low_24h"`
 	Trades          int    `json:"trades"` // 距上一次推送之间的成交笔数
 	UpdatedAt       int64  `json:"updated_at"`
+	LastAt          int64  `json:"last_at,omitempty"` // 最后一笔成交的时间（UpdatedAt 盘口、标记价格也会改）：前端拿它判断实时价落在哪一根 K 线
 }
 
 // SourceStatus 描述数据源连接健康度，前端"系统状态"用。

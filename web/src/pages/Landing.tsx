@@ -216,7 +216,7 @@ function OverviewFlow() {
   const { snap, version } = useMarket(inst)
   const cur = snap?.instruments.find((i) => i.instrument === inst)
   const dec = cur ? priceDecimals(Number(cur.last)) : 1
-  const { bars, more } = useCandles(inst, iv.value)
+  const { bars, more } = useCandles(inst, iv.value, cur)
   useEffect(() => { if (list.length && !list.includes(inst)) setInst(list.includes('BTC-PERP') ? 'BTC-PERP' : list[0]) }, [list, inst])
   return (
     <section className="display lp-heat">

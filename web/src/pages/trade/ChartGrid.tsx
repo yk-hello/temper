@@ -88,8 +88,8 @@ export function MiniChart({ idx, cell, instruments, version, onCell, onMain }: {
   onCell: (c: Cell) => void; onMain: (inst: string) => void
 }) {
   const t = useT()
-  const { bars, more } = useCandles(cell.i || undefined, cell.iv)
   const st = instruments.find((x) => x.instrument === cell.i)
+  const { bars, more } = useCandles(cell.i || undefined, cell.iv, st)
   const last = Number(st?.last) || bars[bars.length - 1]?.c || 0
   const dec = last > 0 ? priceDecimals(last) : 2
   const chg = Number(st?.change_24h_pct) || 0

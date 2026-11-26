@@ -172,7 +172,7 @@ func (s *Server) ws(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer c.CloseNow()
-	// 客户端可以发 {"book":"BTC-PERP"} 订阅一个品种的盘口（前 20 档），每 200 毫秒推一次（有变化才推）
+	// 客户端可以发 {"book":"BTC-PERP"} 订阅一个品种的盘口（前 20 档），和行情同一个间隔推（默认 0.1 秒，有变化才推）
 	ctx, cancelRead := context.WithCancel(r.Context())
 	defer cancelRead()
 	var bookInst atomic.Value
@@ -195,7 +195,11 @@ func (s *Server) ws(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}()
-	bookTick := time.NewTicker(200 * time.Millisecond)
+	bookEvery := s.Hub.Interval()
+	if bookEvery <= 0 {
+		bookEvery = 100 * time.Millisecond
+	}
+	bookTick := time.NewTicker(bookEvery)
 	defer bookTick.Stop()
 	var lastBook int64
 	var lastInst string

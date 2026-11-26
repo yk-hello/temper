@@ -998,7 +998,8 @@ export function Scope({ mode, candles, points, interval = 60_000, span: spanProp
   const toLatest = () => { const v = view.current; v.vel = 0; v.tOff = 0; redraw() }
 
   return (
-    <div className="surface">
+    // data-last：最后一根 K 线的收盘价（检查脚本读它，看最后一根是不是跟着实时价走）
+    <div className="surface" data-last={mode === 'candle' && candles?.length ? candles[candles.length - 1].c : undefined}>
       <canvas
         ref={ref}
         className={`interactive ${panning ? 'pannable' : ''} ${tool ? 'drawing' : ''}`}
