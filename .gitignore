@@ -4,10 +4,13 @@ dist/
 build/
 *.exe
 backend/bin/
+__pycache__/
+*.pyc
 # env & secrets
 .env
 .env.*
 !.env.example
+strategy.env
 *.pem
 *.key
 # data

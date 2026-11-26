@@ -94,6 +94,8 @@ ssh -L 8080:127.0.0.1:8080 你的用户名@服务器IP
 
 - [策略作者指南](docs/strategy-guide.md)：适合接什么样的策略、怎么验证、常见的坑、空模板（我们不提供策略）
 - [接策略](docs/strategies.md)：TradingView / Webhook、qsig/1、从回测到模拟盘再到实盘
+- [策略用的数据从哪里来](market-data.md)：K 线、资金费、持仓量、新闻、宏观数据去哪里取，历史能取多久，什么时候才拿得到
+- [让策略一直跑](running.md)：用 Docker、systemd 或 Windows 循环脚本，崩了、重启了自己起来；为什么重启不会多下单
 - [回测](docs/backtest.md)：信号表写法、命令行、和真实交易不一样的地方
 - [接币安实盘](docs/live.md)：怎么建密钥、安全设计、哪些功能只在模拟盘
 - [和币安一样的接口](docs/binance-api.md)：现成的币安程序改个地址、换把模拟密钥就跑在模拟盘上

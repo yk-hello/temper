@@ -1,0 +1,23 @@
+# 用 Docker 让策略一直跑：崩了自己重启，Docker 起来时自己起来。
+# 把这个文件、strategy.env 和你的策略（连同 qsclient.py）放在同一个目录，然后：
+#   docker compose up -d          启动
+#   docker compose logs -f        看输出
+#   docker compose down           停
+# 说明见 docs/running.md。
+services:
+  strategy:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./:/app                     # 策略代码；策略写的日志也落在这个目录
+    command: ["python", "-u", "template_rule.py"]   # 换成你的策略文件
+    env_file: strategy.env
+    restart: unless-stopped         # 崩了 Docker 自己重启；只有 docker compose down / stop 才停
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # Docker Desktop 本来就认这个名字；Linux 上要这一行
+    # Linux 上平台只听本机（127.0.0.1:8080）时，容器连不到 host.docker.internal:8080：
+    # 把上面 extra_hosts 两行换成下面这一行，strategy.env 里 QS_BASE=http://localhost:8080
+    # network_mode: host
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }   # 日志最多留 30 MB，不会写满硬盘

@@ -98,6 +98,8 @@ ssh -L 8080:127.0.0.1:8080 你的使用者名稱@伺服器IP
 
 - [策略作者指南](docs/strategy-guide.md)：適合串接什麼樣的策略、怎麼驗證、常見的坑、空白範本（我們不提供策略）
 - [串接策略](docs/strategies.md)：TradingView / Webhook、qsig/1、從回測到模擬交易再到實盤
+- [策略用的資料從哪裡來](market-data.md)：K 線、資金費、持倉量、新聞、總經數據去哪裡取，歷史能取多久，什麼時候才拿得到
+- [讓策略一直跑](running.md)：用 Docker、systemd 或 Windows 循環腳本，當掉、重開機了自己起來；為什麼重啟不會多下單
 - [回測](docs/backtest.md)：訊號表寫法、命令列、和真實交易不一樣的地方
 - [串接幣安實盤](docs/live.md)：怎麼建立金鑰、安全設計、哪些功能只在模擬交易
 - [和幣安一樣的 API](docs/binance-api.md)：現成的幣安程式改個網址、換一把模擬金鑰就跑在模擬交易上

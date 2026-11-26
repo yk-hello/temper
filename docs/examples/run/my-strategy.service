@@ -1,0 +1,25 @@
+# Linux 服务器上用 systemd 让策略一直跑：崩了 10 秒后重启，开机自己起来。说明见 docs/running.md。
+#
+#   sudo useradd -r -s /usr/sbin/nologin strategy            # 单独一个没有登录权限的用户来跑
+#   sudo mkdir -p /opt/my-strategy && sudo cp *.py strategy.env /opt/my-strategy/
+#   sudo chown -R strategy /opt/my-strategy && sudo chmod 600 /opt/my-strategy/strategy.env
+#   sudo cp my-strategy.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now my-strategy
+#   journalctl -u my-strategy -f                              # 看输出
+#   sudo systemctl stop my-strategy                           # 停
+
+[Unit]
+Description=My strategy (qsig/1)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+User=strategy
+WorkingDirectory=/opt/my-strategy
+EnvironmentFile=/opt/my-strategy/strategy.env
+ExecStart=/usr/bin/python3 -u template_rule.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

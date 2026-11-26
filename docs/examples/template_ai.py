@@ -6,10 +6,13 @@
     QS_BASE=http://localhost:8080 QS_KEY=... QS_SECRET=... QS_STRATEGY=my-ai python template_ai.py
 
 只用 Python 标准库；签名、发送、读回报用同目录的 qsclient.py（复制到一起就行）。
+要 K 线、资金费、持仓量这些，用同目录的 marketdata.py（见 docs/market-data.md）。
+要一直跑、崩了自己起来：docs/running.md。
 """
 
 import json
 import os
+import threading
 import time
 from datetime import datetime, timezone
 
@@ -37,7 +40,8 @@ def build_prompt(data: dict) -> str:
 
 
 def ask_model(prompt: str) -> str:
-    """调你自己用的模型服务，返回模型的原始文本输出。这里故意是空的。"""
+    """调你自己用的模型服务，返回模型的原始文本输出。这里故意是空的。
+    记得给请求设超时（比如 120 秒）：模型服务卡住时，宁可这一次不判断。"""
     raise NotImplementedError("接你自己的模型服务")
 
 
@@ -61,15 +65,22 @@ def check(raw: str) -> tuple[dict[str, float], float, str, float] | None:
     return weights, sum(confs) / len(confs), "；".join(n for n in notes if n) or "模型判断", float(out.get("cost_usd", 0))
 
 
-def main() -> None:
-    os.makedirs(LOG_DIR, exist_ok=True)
-    c = Client(version=VERSION)
-    last = 0.0
+def keep_alive(c: Client) -> None:
+    """心跳单独一个线程：问一次模型可能要几十秒到几分钟，和判断放在一个循环里的话，卡住时心跳也停了，超过 180 秒就算离线。"""
     while True:
         try:
             c.heartbeat()
         except (QsigError, OSError) as e:
-            print("心跳", e)
+            print("心跳", e, flush=True)
+        time.sleep(45)
+
+
+def main() -> None:
+    os.makedirs(LOG_DIR, exist_ok=True)
+    c = Client(version=VERSION)
+    threading.Thread(target=keep_alive, args=(c,), daemon=True).start()
+    last = 0.0
+    while True:
         if time.time() - last >= EVERY:
             last = time.time()
             now = datetime.now(timezone.utc)
@@ -91,7 +102,7 @@ def main() -> None:
                 record["error"] = str(e)
             with open(os.path.join(LOG_DIR, now.strftime("%Y%m%d") + ".jsonl"), "a", encoding="utf-8") as f:
                 f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
-        time.sleep(45)
+        time.sleep(5)
 
 
 if __name__ == "__main__":

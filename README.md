@@ -98,6 +98,8 @@ The detailed guides are in Chinese for now, except the protocol:
 
 - [Strategy author guide](docs/strategy-guide.md): what fits, how to validate, common pitfalls, empty template (we do not provide strategies)
 - [Connecting strategies](docs/strategies.md): TradingView / webhooks, qsig/1, from backtest to paper to live
+- [Market data for strategies](market-data.md): where to get candles, funding, open interest, news and macro data, how much history each has, and when each value is actually known
+- [Keeping a strategy running](running.md): Docker, systemd or a Windows loop script so it comes back after a crash or reboot; why a restart does not double orders
 - [Backtesting](docs/backtest.md): signal tables, command line, how it differs from real trading
 - [Binance live trading](docs/live.md): creating keys, security design, paper-only features
 - [Binance-compatible API](docs/binance-api.md): run an existing Binance program on paper by changing the base URL and key
