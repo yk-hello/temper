@@ -274,27 +274,35 @@ await page.locator('.op .seg button', { hasText: '限价' }).first().click()
 const cv = page.locator('.mk-chart canvas.pannable')
 mk = await mark()
 await inPage('POST', `/api/trade/${acctId}/tpsl`, { instrument: 'BTC-PERP', tp: t1(mk * 1.003) })
-// 后端刚重启时图表的价格范围很窄：挂单价从离现价 0.4% 开始，线不在画面里就挂近一点
-for (const pct of [0.996, 0.998, 0.999, 0.9995]) {
-  mk = await mark()
-  await inPage('POST', `/api/trade/${acctId}/orders`, { instrument: 'BTC-PERP', side: 'buy', type: 'limit', price: t1(mk * pct), qty: '0.01' })
-  await page.waitForTimeout(1200)
-  if (JSON.parse((await cv.getAttribute('data-tlines')) ?? '[]').some((l) => l.k === 'limit')) break
-  const stray = (await inPage('GET', `/api/trade/${acctId}`)).body.orders.find((o) => o.type === 'limit' && o.side === 'buy')
-  if (stray) await inPage('DELETE', `/api/trade/${acctId}/orders/${stray.id}`)
+// 交易线在画布上的位置（data-tlines：id、种类、y、标签的 ty、x、价）。每次按下前重新读（K 线在走，价格轴会缓慢移动）
+const lineNow = async (k, id) => JSON.parse((await cv.getAttribute('data-tlines')) ?? '[]').find((l) => l.k === k && (!id || l.id === id))
+// 挂一张图上看得见的限价买单，返回这张单。先离现价 0.4%，图上没有这条线（后端刚起来、模拟行情平静时图的价格范围很窄，
+// 0.4% 甚至 0.2% 都在画面外面）就撤掉挂近一点。11-28：原来拖线前还有一道"离现价不到 0.3% 就撤掉、按 0.4% 重挂"，
+// 把这里好不容易挂在画面里的单又挂回画面外面，图上没线可拖——"拖挂单线"时过时不过就是这个
+const placeVisible = async () => {
+  for (const pct of [0.996, 0.998, 0.999, 0.9995]) {
+    mk = await mark()
+    const o = (await inPage('POST', `/api/trade/${acctId}/orders`, { instrument: 'BTC-PERP', side: 'buy', type: 'limit', price: t1(mk * pct), qty: '0.01' })).body
+    if (!o?.id) continue
+    for (let i = 0; i < 15; i++) { // 最多等 1.5 秒画出来
+      await page.waitForTimeout(100)
+      if (await lineNow('limit', o.id)) return o
+    }
+    await inPage('DELETE', `/api/trade/${acctId}/orders/${o.id}`)
+  }
+  return null
 }
+let placed = await placeVisible()
 const lines = JSON.parse((await cv.getAttribute('data-tlines')) ?? '[]')
 const kinds = new Set(lines.map((l) => l.k))
 ok(kinds.has('entry') && kinds.has('limit'), `图上画出自己的持仓线、挂单线（${[...kinds].join(', ')}）`)
 await page.screenshot({ path: `${OUT}/ui-11-lines.png` })
-// 拖线：每次按下前重新读线的位置（K 线在走，价格轴会缓慢移动），按住标签往上 / 往下拖。
-// 拖完等提示；没等到（没抓住线）就再试一次
-const lineNow = async (k) => JSON.parse((await cv.getAttribute('data-tlines')) ?? '[]').find((l) => l.k === k)
-const dragLine = async (k, toY, shot) => {
+// 拖线：按住标签往上 / 往下拖。拖完等提示；没等到（没抓住线）就再试一次。id：只拖这一张单的线
+const dragLine = async (k, toY, shot, id) => {
   for (let attempt = 0; attempt < 3; attempt++) {
     await page.waitForFunction(() => !document.querySelector('.toast.show'), null, { timeout: 7000 }).catch(() => {}) // 撤单提示会留 5 秒（可以撤回），不要读到旧提示
     const bb = await cv.boundingBox()
-    const l = await lineNow(k)
+    const l = await lineNow(k, id)
     if (!l) return { l: null, text: '' }
     await page.mouse.move(bb.x + l.x, bb.y + l.ty)
     await page.mouse.down()
@@ -309,27 +317,16 @@ const dragLine = async (k, toY, shot) => {
   return { l: null, text: '' }
 }
 {
-  let before = (await inPage('GET', `/api/trade/${acctId}`)).body.orders.find((o) => o.type === 'limit' && o.side === 'buy')
-  mk = await mark()
-  // 离现价不到 0.3%：模拟行情一跌就成交了，拖的时候图上已经没有这条线（11-18 连着两次）→ 撤掉，按现在的价重挂
-  if (before && Number(before.price) > mk * 0.997) {
-    await inPage('DELETE', `/api/trade/${acctId}/orders/${before.id}`)
-    await page.waitForTimeout(800)
-    before = null
-  }
-  if (!before) { // 模拟行情波动大，可能已经成交了：再挂一张
-    mk = await mark()
-    await inPage('POST', `/api/trade/${acctId}/orders`, { instrument: 'BTC-PERP', side: 'buy', type: 'limit', price: t1(mk * 0.996), qty: '0.01' })
-    await page.waitForTimeout(1200)
-    before = (await inPage('GET', `/api/trade/${acctId}`)).body.orders.find((o) => o.type === 'limit' && o.side === 'buy')
-  }
+  // 刚才挂的那张还在就用它（模拟行情波动大，可能已经成交了，那就再挂一张看得见的）
+  let before = placed && (await inPage('GET', `/api/trade/${acctId}`)).body.orders.find((o) => o.id === placed.id)
+  if (!before) before = await placeVisible()
   // 往下拖（离现价更远）：模拟行情波动大，往上拖可能直接碰到现价成交，挂单就没了
   // 模拟行情纵轴很宽时，拖太远会超出价格限制被拒绝（这是对的）。拒绝了就拖近一点。
   let text = '', after = null
   // 一轮没拖成（挂单落到图最下面、贴着成交量那一栏，往下没地方拖），就按现在的价重挂一张再拖，最多两轮（11-18）
   for (let round = 0; round < 2; round++) {
     for (const dy of [60, 28, 12]) {
-      text = (await dragLine('limit', (l, bb) => Math.min(l.ty + dy, bb.height - 110), `${OUT}/ui-12-dragging.png`)).text
+      text = (await dragLine('limit', (l, bb) => Math.min(l.ty + dy, bb.height - 110), `${OUT}/ui-12-dragging.png`, before?.id)).text
       if (/已改到/.test(text)) break
       await page.waitForTimeout(600)
     } // 拖够远：行情一动纵轴会变，拖太短结果可能反过来
@@ -337,10 +334,7 @@ const dragLine = async (k, toY, shot) => {
     after = (await inPage('GET', `/api/trade/${acctId}`)).body.orders.find((o) => o.id === before?.id)
     if (/已改到/.test(text) && after && Number(after.price) !== Number(before.price)) break
     if (before) await inPage('DELETE', `/api/trade/${acctId}/orders/${before.id}`)
-    mk = await mark()
-    await inPage('POST', `/api/trade/${acctId}/orders`, { instrument: 'BTC-PERP', side: 'buy', type: 'limit', price: t1(mk * 0.998), qty: '0.01' })
-    await page.waitForTimeout(1500)
-    before = (await inPage('GET', `/api/trade/${acctId}`)).body.orders.find((o) => o.type === 'limit' && o.side === 'buy')
+    before = await placeVisible()
   }
   // 模拟行情跳得很猛，拖的那零点几秒里纵轴会自动重新缩放，同一个位置对应的价可能反而变高（11-18 连着两次）：只要求改成功、价变了
   ok(/已改到/.test(text) && after && Number(after.price) !== Number(before.price), `拖挂单线：改价成功（${before?.price} → ${after?.price}，提示：${text}）`)

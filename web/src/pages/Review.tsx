@@ -7,7 +7,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ChangeEvent 
 import { errText, fmtTime, useLang, useT, tr, type Key, listSep } from '../lib/i18n'
 import { api, ApiError, useSession } from '../lib/session'
 import { baseOf, fmtPrice } from '../lib/format'
-import { linkProps } from '../lib/route'
+import { linkProps, setParam } from '../lib/route'
 import { toast, usePrivate } from '../lib/privacy'
 import { usePaperAccounts } from '../lib/trade'
 import { holdText, median, tzOffsetMin, type Excursion, type Finding, type JStats, type JTrade, type Note, type Origin, type Playbook, type Stat } from '../lib/journal'
@@ -61,7 +61,7 @@ export default function Review() {
   const s = useSession()
   const { current } = usePaperAccounts(true)
   const [tab, setTabRaw] = useState<Tab>(() => { const v = new URLSearchParams(location.search).get('tab'); return TABS.includes(v as Tab) ? (v as Tab) : 'log' })
-  const setTab = (v: Tab) => setTabRaw(v)
+  const setTab = (v: Tab) => { setTabRaw(v); setParam('review', 'tab', v) } // 地址栏写了 tab 的，跟着换
   const [origin, setOrigin] = useState<Origin>('manual')
   const acct = current?.id ?? null // 看哪个账户：顶栏的账户切换（D73），这里不再单独选
   const [ver, setVer] = useState(0)

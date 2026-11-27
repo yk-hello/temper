@@ -5,7 +5,7 @@ import { useT, useLang, setLang, errText } from '../lib/i18n'
 import { BRAND } from '../lib/brand'
 import { api, ApiError, setUser, useSession, type User } from '../lib/session'
 import { markWizardPending } from '../lib/follow'
-import { bootSearch, go, linkProps, takeBack } from '../lib/route'
+import { bootSearch, go, linkProps, setParam, takeBack } from '../lib/route'
 import { useMarket } from '../lib/useMarket'
 import { baseOf, fmtPct, fmtPrice, sign } from '../lib/format'
 import { Field, FormError } from '../ui/Field'
@@ -74,7 +74,7 @@ export default function Auth() {
               {(
                 <p className="au-switch">
                   {t(mode === 'login' ? 'auth.toRegister' : 'auth.toLogin')}{' '}
-                  <button type="button" className="au-link" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
+                  <button type="button" className="au-link" onClick={() => { const m = mode === 'login' ? 'register' : 'login'; setMode(m); setParam('login', 'mode', m === 'register' ? 'register' : null) }}>
                     {t(mode === 'login' ? 'auth.toRegisterLink' : 'auth.toLoginLink')}
                   </button>
                 </p>

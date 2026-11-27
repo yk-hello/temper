@@ -4,7 +4,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useT, tr, fmtCompactL, type Key } from '../lib/i18n'
 import { BRAND } from '../lib/brand'
-import { go } from '../lib/route'
+import { go, setParam } from '../lib/route'
 import { isRunning, useFollows, usePoll, type StrategyState } from '../lib/follow'
 import { baseOf, priceDecimals } from '../lib/format'
 import { useMarket } from '../lib/useMarket'
@@ -128,7 +128,7 @@ export function Overview() {
     const v = new URLSearchParams(location.search).get('tab') ?? (() => { try { return localStorage.getItem('qs.ovTab') } catch { return null } })()
     return v === 'today' || v === 'screen' || v === 'heat' || v === 'flow' || v === 'chain' || v === 'venues' || v === 'system' ? v : 'map'
   })
-  const setTab = (v: OvTab) => { setTabRaw(v); try { localStorage.setItem('qs.ovTab', v) } catch { /* 忽略 */ } }
+  const setTab = (v: OvTab) => { setTabRaw(v); setParam('market', 'tab', v); try { localStorage.setItem('qs.ovTab', v) } catch { /* 忽略 */ } }
   return (
     <div className="lp">
       <Bar page="market" />

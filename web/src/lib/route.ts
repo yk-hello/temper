@@ -54,6 +54,20 @@ export function go(page: string, replace = false) {
   window.scrollTo(0, 0)
 }
 
+/** 页面里换了品种、标签以后，把地址栏里对应的那一项改成现在的（不留历史记录）。只改地址栏里本来就写了的项，没写的不加；
+ *  不在这个页面（page）时什么都不做。value 为 null = 去掉这一项。
+ *  11-28 外部反馈：从 ?page=trade&i=ETH-PERP 进来，在页面里切到 SOL，地址栏还是 ETH——刷新、复制地址、去登录再回来都变回 ETH。 */
+export function setParam(page: string, key: string, value: string | null) {
+  const q = new URLSearchParams(location.search)
+  if ((q.get('page') ?? '') !== page || !q.has(key) || q.get(key) === value) return
+  if (value === null) q.delete(key)
+  else q.set(key, value)
+  q.delete('page')
+  const rest = q.toString()
+  history.replaceState(history.state, '', `?page=${page}${rest ? `&${rest}` : ''}`)
+  search = location.search // 页面没变，不用通知别人
+}
+
 /** 链接点击：普通左键走内部切换，Ctrl/⌘/中键照常新开标签页 */
 export function linkProps(page: string) {
   return {

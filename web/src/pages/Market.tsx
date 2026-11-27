@@ -33,7 +33,7 @@ import { flyText, growFrom, lastAnchor, reducedMotion, shrinkTo, type Anchor } f
 import { getPrefs, hotKey, hotLabel } from '../lib/prefs'
 import { clock } from '../lib/gfx'
 import { isRunning, useFollows, usePoll, type Decision, type StrategyState, type StrategyStatus } from '../lib/follow'
-import { linkProps } from '../lib/route'
+import { linkProps, setParam } from '../lib/route'
 import { hms, lockLeft, ruleName, useDiscipline, useTick } from '../lib/discipline'
 import '../styles/risk.css'
 import { DecisionFeed, Locked } from './ai/Decisions'
@@ -72,14 +72,14 @@ export default function Market() {
     if (u) return u
     try { return localStorage.getItem('qs.inst') || 'BTC-PERP' } catch { return 'BTC-PERP' }
   })
-  const setSelected = (v: string) => { setSelectedRaw(v); try { localStorage.setItem('qs.inst', v) } catch { /* 忽略 */ } }
+  const setSelected = (v: string) => { setSelectedRaw(v); setParam('trade', 'i', v); try { localStorage.setItem('qs.inst', v) } catch { /* 忽略 */ } } // 地址栏里的品种跟着换：刷新、去登录再回来都还是这个
   const { snap, conn, history, version, book } = useMarket(selected)
   const now = useNow(1000)
   const [ivKey, setIvKey] = useState(savedIv)
   const pickIv = (v: string) => { setIvKey(v); try { localStorage.setItem(IV_KEY, v) } catch { /* 忽略 */ } }
   const spot = spotInst(selected)
   const [mode0, setModeRaw] = useState<ChartMode>(() => { try { const v = new URLSearchParams(location.search).get('chart') ?? localStorage.getItem('qs.chartMode'); return v === 'heat' || v === 'flow' ? v : 'candle' } catch { return 'candle' } })
-  const setMode = (v: ChartMode) => { setModeRaw(v); try { localStorage.setItem('qs.chartMode', v === 'heat' || v === 'flow' ? v : 'candle') } catch { /* 忽略 */ } }
+  const setMode = (v: ChartMode) => { setModeRaw(v); setParam('trade', 'chart', v === 'heat' || v === 'flow' ? v : null); try { localStorage.setItem('qs.chartMode', v === 'heat' || v === 'flow' ? v : 'candle') } catch { /* 忽略 */ } }
   const [heatSpan, setHeatSpan] = useHeatSpan()
   const [heatLayers, setHeatLayers] = useHeatLayers()
   const [heatFloor, setHeatFloor] = useHeatFloor()
