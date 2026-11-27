@@ -26,7 +26,7 @@ import (
 // 文档：https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Important-WebSocket-Change-Notice
 type Binance struct {
 	Symbols []string
-	BaseURL string // 默认 wss://fstream.binance.com
+	BaseURL string // 默认 wss://fstream.binance.com；现货默认 wss://stream.binance.com:443（BINANCE_SPOT_WS_URL 可改）
 	Spot    bool   // 现货：一条线路，地址和格式都不同
 	Log     *slog.Logger
 
@@ -90,7 +90,9 @@ func (b *Binance) base() string {
 		return strings.TrimRight(b.BaseURL, "/")
 	}
 	if b.Spot {
-		return "wss://stream.binance.com:9443"
+		// 现货走 443（11-27 外部反馈：有的网络拦 9443 这种不常见的端口，TLS 握手就被断开）。
+		// 币安官方 9443、443 两个都给；只要行情的话 wss://data-stream.binance.vision:443 也行
+		return "wss://stream.binance.com:443"
 	}
 	return "wss://fstream.binance.com"
 }

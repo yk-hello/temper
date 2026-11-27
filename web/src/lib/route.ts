@@ -19,10 +19,36 @@ export function usePage(): string {
   return new URLSearchParams(s).get('page') ?? ''
 }
 
+// 登录、注册以后回到刚才的页面（11-27 外部反馈：没登录点"去接入策略"，登完被扔回首页，要自己重新找）。
+// 去登录页时记下从哪个页面来的（只记这个标签页，sessionStorage），登录、注册、两步验证、验证邮箱完成后回去。
+const BACK = 'qs.back'
+const isLogin = (page: string) => /^login(&|$)/.test(page)
+
+/** 登录、注册完成后去哪：刚才的页面（?page= 后面那段），没有就是空字符串（行情页）。取一次就清掉。 */
+export function takeBack(): string {
+  let v = ''
+  try {
+    v = sessionStorage.getItem(BACK) ?? ''
+    sessionStorage.removeItem(BACK)
+  } catch { /* 隐私模式等：回行情页 */ }
+  return isLogin(v) ? '' : v
+}
+
 /** 跳到 ?page=xxx（空字符串回到行情页）。replace：不留历史记录（例如登录成功后）。 */
 export function go(page: string, replace = false) {
   const url = page ? `?page=${page}` : location.pathname
   if (url === location.search || (!page && !location.search)) return
+  if (isLogin(page)) {
+    const q = new URLSearchParams(location.search)
+    const cur = q.get('page') ?? ''
+    q.delete('page')
+    const rest = q.toString()
+    const from = cur && (rest ? `${cur}&${rest}` : cur)
+    try {
+      if (from && !isLogin(from)) sessionStorage.setItem(BACK, from)
+      else if (!from) sessionStorage.removeItem(BACK)
+    } catch { /* 存不了就回行情页 */ }
+  }
   history[replace ? 'replaceState' : 'pushState'](null, '', url)
   emit()
   window.scrollTo(0, 0)

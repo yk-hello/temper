@@ -122,8 +122,20 @@
   .mk-chart .head-iv { flex: 0 1 auto; min-width: 0; }
   .mk-tabs { overflow-x: auto; scrollbar-width: none; }
   /* 打开"下单"标签时，底部面板占大半屏，下单区不用来回滚 */
-  .mk:has(.mk-tabs [data-tab='trade'][aria-pressed='true']), .mk:has(.mk-tabs [data-tab='book'][aria-pressed='true']) { grid-template-rows: auto minmax(0, 1fr) 50%; }
+  .mk:has(.mk-tabs-main [aria-pressed='true']) { grid-template-rows: auto minmax(0, 1fr) 50%; } /* 11-27："账户""自选"也一样，原来只有 108 像素高，持仓几乎看不见 */
   .mk-tabs::-webkit-scrollbar { display: none; }
+  /* 两级标签（11-27）：上面四个大按钮平分一行，手指好点；"账户"下面一排是持仓、委托、历史…… */
+  .mk-tabs-main { height: 48px; padding: 0 12px; }
+  .mk-tabs-main .seg { width: 100%; height: 40px; }
+  .mk-tabs-main .seg button { flex: 1 1 0; min-width: 0; font-size: 14px; padding: 0 6px; }
+  .mk-tabs-sub { height: 42px; padding: 0 12px; background: var(--void); }
+  .mk-tabs-sub .seg { height: 34px; }
+  .mk-tabs-sub .seg button { padding: 0 12px; font-size: 13px; }
+}
+/* 很矮的窗口：大按钮矮一点，下单按钮留在屏幕里 */
+@media (max-width: 859px) and (max-height: 560px) {
+  .mk-tabs-main { height: 42px; }
+  .mk-tabs-main .seg { height: 34px; }
 }
 /* 矮屏（1080p 150%/175% 的笔记本）：品种条压成一行，底部面板矮一点 */
 @media (max-height: 640px) and (min-width: 860px) {
@@ -493,11 +505,11 @@ body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select:
 @media (max-width: 859px) {
   .mk:not([data-max]) { overflow-y: auto; align-content: start; grid-template-rows: max-content minmax(260px, 1fr) var(--bottom-h, 42%); }
   /* 打开"下单""盘口"时 K 线先让位：矮的手机（SE、mini、iPhone Duo 合上的外屏、打开后横着用的 890×626）下单按钮也在屏幕里（11-18） */
-  .mk:not([data-max]):has(.mk-tabs [data-tab='trade'][aria-pressed='true']), .mk:not([data-max]):has(.mk-tabs [data-tab='book'][aria-pressed='true']) { grid-template-rows: max-content minmax(150px, 1fr) minmax(300px, 46%); }
+  .mk:not([data-max]):has(.mk-tabs-main [aria-pressed='true']) { grid-template-rows: max-content minmax(150px, 1fr) minmax(300px, 46%); }
 }
 /* 很矮的竖屏（iPhone Duo 外屏开着 Safari 地址栏约 466×485）：下单区要完整，K 线只留一条看走势 */
 @media (max-width: 859px) and (max-height: 560px) and (min-height: 481px) {
-  .mk:not([data-max]):has(.mk-tabs [data-tab='trade'][aria-pressed='true']), .mk:not([data-max]):has(.mk-tabs [data-tab='book'][aria-pressed='true']) { grid-template-rows: max-content minmax(72px, 1fr) minmax(300px, max-content); }
+  .mk:not([data-max]):has(.mk-tabs-main [aria-pressed='true']) { grid-template-rows: max-content minmax(72px, 1fr) minmax(300px, max-content); }
   /* 这么矮时正在下单：K 线的工具条和事件提示条收起来，那一格全给图（11-18：原来 72 像素全被工具条占了，图挤成一条线） */
   .mk:not([data-max]):has(.mk-tabs [data-tab='trade'][aria-pressed='true']) .mk-chart .display-head,
   .mk:not([data-max]):has(.mk-tabs [data-tab='trade'][aria-pressed='true']) .mk-chart .mk-event { display: none; }

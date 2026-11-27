@@ -5,7 +5,7 @@ import { useT, useLang, setLang, errText } from '../lib/i18n'
 import { BRAND } from '../lib/brand'
 import { api, ApiError, setUser, useSession, type User } from '../lib/session'
 import { markWizardPending } from '../lib/follow'
-import { bootSearch, go, linkProps } from '../lib/route'
+import { bootSearch, go, linkProps, takeBack } from '../lib/route'
 import { useMarket } from '../lib/useMarket'
 import { baseOf, fmtPct, fmtPrice, sign } from '../lib/format'
 import { Field, FormError } from '../ui/Field'
@@ -54,7 +54,7 @@ export default function Auth() {
       <main className="au-main">
         <div className="au-card" key={verify ? 'verify' : tfa ? 'tfa' : forgot ? 'forgot' : mode}>
           {verify ? (
-            <Verify email={verify.email} dev={verify.dev} onDone={() => go('', true)} />
+            <Verify email={verify.email} dev={verify.dev} onDone={() => go(takeBack(), true)} />
           ) : forgot ? (
             <ForgotForm onBack={() => setForgot(false)} />
           ) : tfa ? (
@@ -67,7 +67,7 @@ export default function Auth() {
               {s.state === 'unavailable' && <div className="note au-note">{t('auth.unavailable')}</div>}
               {mode === 'register' && !regOpen
                 ? <div className="note au-note" data-reg-closed>{t('adm.regClosedNote')}</div>
-                : <EmailForm mode={mode} onRegistered={(u, dev) => u.email && !u.email_verified ? setVerify({ email: u.email, dev }) : go('', true)} onNeed2FA={setTfa} />}
+                : <EmailForm mode={mode} onRegistered={(u, dev) => u.email && !u.email_verified ? setVerify({ email: u.email, dev }) : go(takeBack(), true)} onNeed2FA={setTfa} />}
               {mode === 'login' && (
                 <p className="au-switch au-forgot"><button type="button" className="au-link" onClick={() => setForgot(true)} data-forgot>{t('auth.forgot')}</button></p>
               )}
@@ -190,7 +190,7 @@ function TwoFAStep({ ticket, onBack }: { ticket: string; onBack: () => void }) {
     try {
       const r = await api<{ user: User }>('POST', '/api/auth/2fa', { ticket, code: code.trim() })
       setUser(r.user)
-      go('', true)
+      go(takeBack(), true)
     } catch (e2) {
       const c = e2 instanceof ApiError ? e2.code : 'INTERNAL_ERROR'
       if (c === '2FA_EXPIRED') { onBack(); return }
@@ -239,7 +239,7 @@ function EmailForm({ mode, onRegistered, onNeed2FA }: { mode: Mode; onRegistered
       if (r.need_2fa && r.ticket) { onNeed2FA(r.ticket); return }
       if (mode === 'register') { markWizardPending(); onRegistered(r.user, r.dev_code) }
       setUser(r.user)
-      if (mode === 'login') go('', true)
+      if (mode === 'login') go(takeBack(), true) // 回到去登录前的页面（没有就是行情页）
     } catch (e) {
       const code = e instanceof ApiError ? e.code : 'INTERNAL_ERROR'
       setErr({ field: code === 'BAD_NAME' || code === 'NAME_TAKEN' ? 'email' : code === 'WEAK_PASSWORD' ? 'pw' : undefined, code })

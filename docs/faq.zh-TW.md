@@ -25,6 +25,8 @@ docker compose ps
 - 讓 Docker 走你的代理（Docker Desktop → Settings → Resources → Proxies）；
 - 或者先用模擬行情看介面：`.env` 裡寫 `MARKET_SOURCE=sim`。模擬行情的價格是隨機產生的，只用來看功能。
 
+只有現貨頁面提示「現貨行情中斷」、合約正常的話，是現貨的推送位址連不上：`.env` 裡寫 `BINANCE_SPOT_WS_URL=wss://data-stream.binance.vision:443` 再試。
+
 **電腦睡眠以後打不開了。**
 Docker Desktop 在有些電腦上睡眠後會結束。重新開啟 Docker Desktop，服務會自己起來，資料都在。
 

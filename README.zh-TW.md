@@ -76,6 +76,7 @@ ssh -L 8080:127.0.0.1:8080 你的使用者名稱@伺服器IP
 | --- | --- |
 | `QS_MASTER_KEY` | 加密交易所金鑰和策略金鑰用的主金鑰。不填時第一次啟動會自動產生一把，存在 `qs-data` 資料卷裡（**請備份**：`docker compose cp backend:/data/master.key .`）。自行指定：`openssl rand -base64 32`。遺失後已儲存的金鑰無法解開，只能重新串接 |
 | `MARKET_SOURCE` | `binance`（預設，幣安的公開行情，不用金鑰）或 `sim`（模擬行情） |
+| `BINANCE_SPOT_WS_URL` | 選填：現貨行情推送的位址，預設 `wss://stream.binance.com:443`；你的網路連不上時試 `wss://data-stream.binance.vision:443`。不影響合約行情 |
 | `QS_PORT` / `QS_BIND` | 網頁連接埠（預設 8080）和監聽位址（預設 `127.0.0.1`，只有本機能開啟） |
 | `ALLOWED_ORIGINS` | 允許從哪些位址開啟（預設只有 localhost）。用區域網路 IP 或網域開啟時加上，例如 `192.168.1.10:*` |
 | `QSIG_KEYS` | 程式化策略的金鑰：`key_id:secret:strategy_id`，多組用分號分隔 |

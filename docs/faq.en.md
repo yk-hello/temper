@@ -25,6 +25,8 @@ Most likely this machine cannot reach Binance (some regions and networks block i
 - Route Docker through your proxy (Docker Desktop → Settings → Resources → Proxies);
 - Or explore with simulated prices: put `MARKET_SOURCE=sim` in `.env`. Simulated prices are random and only meant for trying the features.
 
+If only spot pages say spot data is down while futures work, the spot stream address is blocked: put `BINANCE_SPOT_WS_URL=wss://data-stream.binance.vision:443` in `.env` and try again.
+
 **It stopped working after the computer slept.**
 On some machines Docker Desktop quits on sleep. Start Docker Desktop again; the services come back on their own and your data is intact.
 

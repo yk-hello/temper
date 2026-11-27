@@ -3155,6 +3155,10 @@ export const zh = {
   'nt.dur.d': "{d} 天",
   'nt.dur.dh': "{d} 天 {h} 小时",
   'mys.pushHint': "策略每次发新目标，会按\"通知\"里\"我的策略调仓\"的设置提醒你（站内、Telegram、邮件、Webhook）：只提醒，不下单。3 分钟没收到心跳会按\"策略离线\"提醒你，恢复时再提醒一次。想让它自动下单，在策略页点\"跟随\"。",
+  'mk.down.spot': "现货行情中断",
+  'mk.down.spotTail': "，正在自动重连。合约行情正常；现货价格在恢复前不会更新。",
+  'tab.acct': "账户",
+  'tab.acctLabel': "账户记录",
 } as const
 
 export type Key = keyof typeof zh

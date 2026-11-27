@@ -166,7 +166,7 @@ func main() {
 			return 2
 		}}).Run(ctx, fan)
 	} else {
-		go (&market.Binance{Symbols: spotSyms, Spot: true, Log: log}).Run(ctx, fan)
+		go (&market.Binance{Symbols: spotSyms, Spot: true, BaseURL: cfg.SpotWS, Log: log}).Run(ctx, fan)
 	}
 	if primary == "binance-usdm" {
 		syms := map[string]string{}

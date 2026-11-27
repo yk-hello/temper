@@ -126,6 +126,8 @@ export default function Market() {
   const dec = cur ? priceDecimals(Number(cur.last)) : 1
   const status = snap?.status
   const feedDown = conn === 'open' && !!status && Object.entries(status.connections).some(([k, v]) => !v && (k === 'spot') === spot)
+  // 现货断了、合约照常：写清楚只是现货（11-27 外部反馈：别让局部断线看起来像全站故障）
+  const spotOnly = spot && feedDown && !!status && Object.entries(status.connections).every(([k, v]) => k === 'spot' || v)
   // 行情积压（后端测的，扣掉了时钟偏差）：超过 2 秒就不说"实时"，直接说延迟几秒
   const lagS = Math.max(0, ...Object.values(status?.lag_ms ?? {})) / 1000
   const feedLag = conn === 'open' && !feedDown && lagS >= 2
@@ -325,7 +327,7 @@ export default function Market() {
 
       {view && <LiqBanner view={view} />}
       {(conn === 'closed' || feedDown) && (
-        <div className="note mk-note"><span><b>{t(conn === 'closed' ? 'mk.down.server' : 'mk.down.feed')}</b>{t('mk.down.tail')}</span></div>
+        <div className="note mk-note" data-feed-down={spotOnly ? 'spot' : 'all'}><span><b>{t(conn === 'closed' ? 'mk.down.server' : spotOnly ? 'mk.down.spot' : 'mk.down.feed')}</b>{t(spotOnly ? 'mk.down.spotTail' : 'mk.down.tail')}</span></div>
       )}
 
       <main className="mk" style={lay.style} data-max={lay.max ?? undefined} data-empty={!spot && (!view || (view.positions.length === 0 && (view.orders?.length ?? 0) === 0)) ? '' : undefined}>
@@ -859,15 +861,12 @@ function BottomTabs({ narrow, book, trade, watch, view, specs, onPick, spot, spo
   const nBots = bots.filter((b) => b.status !== 'stopped').length
   return (
     <>
-      <div className="display-head mk-tabs">
-        <Seg label={t('tab.label')} value={tab} onChange={setTab} options={[
-          ...(narrow ? [{ value: 'trade' as const, label: t('tab.trade') }, { value: 'book' as const, label: t('tab.book') }, { value: 'watch' as const, label: t('tab.watch') }] : []),
+      <TabsHead narrow={narrow} tab={tab} setTab={setTab} acct={[
           { value: 'pos', label: <Counted text={t('tab.pos', { n: view?.positions.length ?? 0 })} n={view?.positions.length ?? 0} /> }, { value: 'open', label: <Counted text={t('tab.open', { n: (view?.orders.length ?? 0) + nAlgo })} n={(view?.orders.length ?? 0) + nAlgo} /> }, // 连正在跑的追价、TWAP、冰山一起算（11-17 走查：TWAP 在跑，标签写委托 0）
           { value: 'hist', label: t('tab.hist') }, { value: 'fills', label: t('tab.fills') }, { value: 'funding', label: t('tab.funding') },
           { value: 'bots' as const, label: <Counted text={t('bt.tab', { n: nBots })} n={nBots} /> },
           { value: 'sig', label: t('tab.sig') }, { value: 'ai', label: t('tab.ai') },
         ]} />
-      </div>
       <div className="display-body mk-scroll">
         {tab === 'book' && book}
         {tab === 'watch' && watch}
@@ -887,6 +886,29 @@ function BottomTabs({ narrow, book, trade, watch, view, specs, onPick, spot, spo
   )
 }
 
+type Panel = 'trade' | 'book' | 'watch'
+const PANELS: readonly string[] = ['trade', 'book', 'watch']
+
+/** 底部标签的标题行。宽屏一排：持仓、委托、历史……（下单区、盘口有自己的列）。
+ *  窄屏分两级（11-27 外部反馈：7 个标签挤在一条横滑栏里、只有 24 像素高，"看哪个面板"和"查哪种账户记录"混在一起）：
+ *  上面四个大按钮——下单、盘口、自选、账户；点"账户"后下面再一排持仓、委托、历史……，记着上次看的是哪个 */
+function TabsHead<T extends string>({ narrow, tab, setTab, acct }: { narrow: boolean; tab: T; setTab: (v: T) => void; acct: { value: T; label: React.ReactNode }[] }) {
+  const t = useT()
+  const inAcct = !PANELS.includes(tab)
+  const last = useRef<T>(acct[0].value)
+  useEffect(() => { if (inAcct) last.current = tab }, [tab, inAcct])
+  if (!narrow) return <div className="display-head mk-tabs"><Seg label={t('tab.label')} value={tab} onChange={setTab} options={acct} /></div>
+  const main: { value: Panel | 'acct'; label: string }[] = [{ value: 'trade', label: t('tab.trade') }, { value: 'book', label: t('tab.book') }, { value: 'watch', label: t('tab.watch') }, { value: 'acct', label: t('tab.acct') }]
+  return (
+    <>
+      <div className="display-head mk-tabs mk-tabs-main">
+        <Seg label={t('tab.label')} value={inAcct ? 'acct' : (tab as Panel)} onChange={(v) => setTab(v === 'acct' ? last.current : (v as T))} options={main} />
+      </div>
+      {inAcct && <div className="display-head mk-tabs mk-tabs-sub"><Seg label={t('tab.acctLabel')} value={tab} onChange={setTab} options={acct} /></div>}
+    </>
+  )
+}
+
 /** 现货的底部标签：资产、当前委托、成交 */
 function SpotTabs({ narrow, book, trade, watch, view, acct, signedIn, onPick, bots, botPanel }: { narrow: boolean; book: React.ReactNode; trade: React.ReactNode; watch: React.ReactNode; view: SpotView | null; acct?: number; signedIn: boolean; onPick: (i: string) => void; bots: Bot[]; botPanel: React.ReactNode }) {
   const t = useT()
@@ -897,15 +919,12 @@ function SpotTabs({ narrow, book, trade, watch, view, acct, signedIn, onPick, bo
   useEffect(() => { if (narrow && !wasNarrow.current) setTab('trade'); wasNarrow.current = narrow }, [narrow]) // 从宽变窄：接着显示下单区
   return (
     <>
-      <div className="display-head mk-tabs">
-        <Seg label={t('tab.label')} value={tab} onChange={setTab} options={[
-          ...(narrow ? [{ value: 'trade' as const, label: t('tab.trade') }, { value: 'book' as const, label: t('tab.book') }, { value: 'watch' as const, label: t('tab.watch') }] : []),
+      <TabsHead narrow={narrow} tab={tab} setTab={setTab} acct={[
           { value: 'assets' as const, label: t('sp.tabAssets') },
           { value: 'open' as const, label: <Counted text={t('tab.open', { n: view?.orders.length ?? 0 })} n={view?.orders.length ?? 0} /> },
           { value: 'fills' as const, label: t('tab.fills') },
           { value: 'bots' as const, label: <Counted text={t('bt.tab', { n: nBots })} n={nBots} /> },
         ]} />
-      </div>
       <div className="display-body mk-scroll">
         {tab === 'book' && book}
         {tab === 'watch' && watch}

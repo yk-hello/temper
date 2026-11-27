@@ -39,6 +39,7 @@ type Config struct {
 	BinanceKey     string        // 币安 API 密钥（只开读取和交易，不开提现）：读真实的保证金分档；以后实盘也用。不要打印
 	BinanceSecret  string        //
 	BinanceBase    string        // 测试环境指向假服务器，正式环境留空
+	SpotWS         string        // 现货行情推送地址；空 = wss://stream.binance.com:443（不影响合约）
 }
 
 func Load() Config {
@@ -72,6 +73,7 @@ func Load() Config {
 		BinanceKey:     env("BINANCE_API_KEY", ""),
 		BinanceSecret:  env("BINANCE_API_SECRET", ""),
 		BinanceBase:    env("BINANCE_FAPI_BASE", ""),
+		SpotWS:         env("BINANCE_SPOT_WS_URL", ""),
 		DeepSeekBase:   env("DEEPSEEK_BASE", ""),
 	}
 }

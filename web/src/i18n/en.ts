@@ -3149,4 +3149,8 @@ export const en: Record<Key, string> = {
   'nt.dur.d': "{d} d",
   'nt.dur.dh': "{d} d {h} h",
   'mys.pushHint': "Each time a strategy sends new targets you are alerted according to \"My strategy rebalances\" under Notifications (in-app, Telegram, email, webhook): alert only, no orders. If no heartbeat arrives for 3 minutes, \"Strategy offline\" alerts you, and again when it is back. To have it trade automatically, click Follow on the Strategies page.",
+  'mk.down.spot': "Spot feed interrupted",
+  'mk.down.spotTail': ". Reconnecting automatically. Futures data is fine; spot prices won't update until it's back.",
+  'tab.acct': "Account",
+  'tab.acctLabel': "Account records",
 }

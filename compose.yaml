@@ -33,6 +33,7 @@ services:
     environment:
       DATABASE_URL: postgres://qs:${POSTGRES_PASSWORD:-qs_local_dev}@db:5432/qs?sslmode=disable
       MARKET_SOURCE: ${MARKET_SOURCE:-binance}
+      BINANCE_SPOT_WS_URL: ${BINANCE_SPOT_WS_URL:-}
       BRAND_NAME: ${BRAND_NAME:-Temper}
       HYPERLIQUID: ${HYPERLIQUID:-1}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-localhost:*,127.0.0.1:*}

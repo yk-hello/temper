@@ -76,6 +76,7 @@ Main variables:
 | --- | --- |
 | `QS_MASTER_KEY` | Master key that encrypts exchange and strategy keys. If unset, one is generated on first start and stored in the `qs-data` volume (**back it up**: `docker compose cp backend:/data/master.key .`). To set your own: `openssl rand -base64 32`. If it is lost, stored keys cannot be decrypted and must be added again |
 | `MARKET_SOURCE` | `binance` (default, Binance public data, no key) or `sim` (simulated prices) |
+| `BINANCE_SPOT_WS_URL` | Optional: where spot market data streams from. Defaults to `wss://stream.binance.com:443`; if your network blocks it, try `wss://data-stream.binance.vision:443`. Futures data is not affected |
 | `QS_PORT` / `QS_BIND` | Web port (default 8080) and listen address (default `127.0.0.1`, this machine only) |
 | `ALLOWED_ORIGINS` | Which addresses may open the app (localhost only by default). Add your LAN IP or domain, e.g. `192.168.1.10:*` |
 | `QSIG_KEYS` | Keys for programmatic strategies: `key_id:secret:strategy_id`, separated by semicolons |

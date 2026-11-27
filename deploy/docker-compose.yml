@@ -41,6 +41,7 @@ services:
       GOFLAGS: "-buildvcs=false"
       DATABASE_URL: postgres://qs:qs_local_dev@db:5432/qs?sslmode=disable
       MARKET_SOURCE: ${MARKET_SOURCE:-binance}   # binance = 真实行情；sim = 模拟行情
+      BINANCE_SPOT_WS_URL: ${BINANCE_SPOT_WS_URL:-}  # 现货行情推送地址；空 = wss://stream.binance.com:443（不影响合约）
       BRAND_NAME: ${BRAND_NAME:-Temper}          # 产品名（决策 D110）
       QSIG_KEYS: ${QSIG_KEYS:-}                  # 策略密钥 "key_id:secret:strategy_id;..."（也可以在界面上自助建，见 docs/strategies.md）
       QS_SIGNUP: ${QS_SIGNUP:-closed}             # open = 第一个账号以后别人也能自己注册；默认关（D104，"系统"页里可以改）

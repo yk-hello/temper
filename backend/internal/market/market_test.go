@@ -51,6 +51,13 @@ func TestBinanceURLs(t *testing.T) {
 	if !strings.HasPrefix(u["market"], "wss://fstream.binance.com/market/stream?streams=btcusdt@aggTrade/btcusdt@markPrice@1s/btcusdt@ticker/btcusdt@forceOrder/ethusdt@aggTrade") {
 		t.Fatalf("market url: %s", u["market"])
 	}
+	// 现货默认走 443（有的网络拦 9443）；BINANCE_SPOT_WS_URL 能换地址，合约不受影响
+	if u := (&Binance{Symbols: []string{"BTCUSDT"}, Spot: true}).URLs(); u["spot"] != "wss://stream.binance.com:443/stream?streams=btcusdt@aggTrade/btcusdt@depth20@100ms/btcusdt@ticker" {
+		t.Fatalf("spot url: %s", u["spot"])
+	}
+	if u := (&Binance{Symbols: []string{"BTCUSDT"}, Spot: true, BaseURL: "wss://data-stream.binance.vision:443/"}).URLs(); !strings.HasPrefix(u["spot"], "wss://data-stream.binance.vision:443/stream?streams=btcusdt@aggTrade") {
+		t.Fatalf("spot url override: %s", u["spot"])
+	}
 }
 
 func TestCanonicalPerp(t *testing.T) {
