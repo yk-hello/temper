@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -114,23 +115,37 @@ func TestRatioAttached(t *testing.T) {
 }
 
 // 行情断了：超过 30 秒写 stale，留着最后一份
+// clock 测试用的时钟。step 会另开线程取成交量比（refreshRatios），那边最后也读时间，测试这边在往前拨，所以加锁
+// （11-28 自查：和 scan 的测试一样的写法，那个线程没跑完时就会撞上）
+type clock struct {
+	mu sync.Mutex
+	t  time.Time
+}
+
+func (c *clock) Now() time.Time { c.mu.Lock(); defer c.mu.Unlock(); return c.t }
+func (c *clock) add(d time.Duration) {
+	c.mu.Lock()
+	c.t = c.t.Add(d)
+	c.mu.Unlock()
+}
+
 func TestStale(t *testing.T) {
-	now := time.Unix(1000, 0)
+	clk := &clock{t: time.Unix(1000, 0)}
 	f := &fakeFetch{coins: []Coin{{"BTCUSDT", "PoW"}}, tickers: []Ticker{{Symbol: "BTCUSDT", Last: 1, QuoteVol: 2e7}}}
 	s := newService(f)
-	s.Now = func() time.Time { return now }
+	s.Now = clk.Now
 	s.refreshCoins(context.Background())
 	s.step(context.Background())
 	for i := 0; i < 100 && s.Current().State != "ok"; i++ {
 		time.Sleep(time.Millisecond)
 	}
 	f.err = errors.New("断了")
-	now = now.Add(29 * time.Second)
+	clk.add(29 * time.Second)
 	s.step(context.Background())
 	if s.Current().State != "ok" {
 		t.Fatal("29 秒还不算断")
 	}
-	now = now.Add(2 * time.Second)
+	clk.add(2 * time.Second)
 	s.step(context.Background())
 	got := s.Current()
 	if got.State != "stale" || len(got.Nodes) != 1 {

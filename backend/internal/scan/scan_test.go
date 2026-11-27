@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -32,8 +33,22 @@ func (src) LongShort(context.Context, string) (*LongShort, error) {
 }
 func (src) Minutes(context.Context, string, int) ([]sample, error) { return nil, errors.New("none") }
 
+// clock 测试用的时钟。Step 会另开线程取持仓量（refreshOI），那边也读时间，测试这边在往前拨，所以加锁
+// （11-28：go test -race 抓到测试写 now、后台同时读）
+type clock struct {
+	mu sync.Mutex
+	t  time.Time
+}
+
+func (c *clock) Now() time.Time { c.mu.Lock(); defer c.mu.Unlock(); return c.t }
+func (c *clock) add(d time.Duration) {
+	c.mu.Lock()
+	c.t = c.t.Add(d)
+	c.mu.Unlock()
+}
+
 func TestScanAndEvents(t *testing.T) {
-	now := time.Date(2026, 11, 10, 9, 0, 0, 0, time.UTC) // 周二
+	clk := &clock{t: time.Date(2026, 11, 10, 9, 0, 0, 0, time.UTC)} // 周二
 	px := map[string]float64{"BTC": 60000, "PEPE": 0.01}
 	snap := func() marketmap.Snapshot {
 		return marketmap.Snapshot{State: "ok", Nodes: []marketmap.Node{
@@ -42,19 +57,19 @@ func TestScanAndEvents(t *testing.T) {
 		}}
 	}
 	day := int64(86_400_000)
-	today := now.Truncate(24 * time.Hour).UnixMilli()
+	today := clk.Now().Truncate(24 * time.Hour).UnixMilli()
 	s := &Service{Map: snap, Src: src{days: []Day{
 		{T: today - 2*day, O: 58000, H: 59000, L: 57000, C: 58500}, // 周日
 		{T: today - day, O: 58500, H: 61000, L: 58000, C: 60100},   // 周一
 		{T: today, O: 60100, H: 60500, L: 59500, C: 60000},         // 周二
-	}}, Now: func() time.Time { return now }, Pace: time.Millisecond}
+	}}, Now: clk.Now, Pace: time.Millisecond}
 	ctx := context.Background()
-	s.started = now.Add(-time.Hour) // 已经跑了一阵（刚启动时的状态不算异动，下面单独测）
+	s.started = clk.Now().Add(-time.Hour) // 已经跑了一阵（刚启动时的状态不算异动，下面单独测）
 	s.Step(ctx)
 	time.Sleep(50 * time.Millisecond) // 持仓量是后台取的
 	// 5 分钟里 BTC 涨 1.5%（够 1% 的线）、PEPE 涨 0.5%（不够 2%）
 	for i := 1; i <= 20; i++ {
-		now = now.Add(15 * time.Second)
+		clk.add(15 * time.Second)
 		px["BTC"] = 60000 * (1 + 0.015*float64(i)/20)
 		px["PEPE"] = 0.01 * (1 + 0.005*float64(i)/20)
 		s.Step(ctx)

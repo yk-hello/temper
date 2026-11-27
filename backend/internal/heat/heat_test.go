@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -465,15 +466,33 @@ func TestDetectCooldown(t *testing.T) {
 
 // ---------- 录制：乱序、断号、快照之前的增量 ----------
 
+// fakeFeed 假的盘口数据源。Snapshot 是 Recorder 另开线程调的（resync、补快照），测试这边同时在读次数、换快照，
+// 所以都加锁（11-28：go test -race 抓到 n 一边在后台 ++、一边被测试轮询）
 type fakeFeed struct {
+	mu   sync.Mutex
 	snap Snapshot
 	n    int
 }
 
 func (f *fakeFeed) Run(ctx context.Context, connected func(), diff func(string, Diff)) {}
 func (f *fakeFeed) Snapshot(ctx context.Context, inst string) (Snapshot, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.n++
 	return f.snap, nil
+}
+
+// calls 取了几次快照
+func (f *fakeFeed) calls() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.n
+}
+
+func (f *fakeFeed) setSnap(s Snapshot) {
+	f.mu.Lock()
+	f.snap = s
+	f.mu.Unlock()
 }
 
 // 先攒增量，再拼快照；中间断号时自动重取
@@ -496,13 +515,13 @@ func TestRecorderResync(t *testing.T) {
 		t.Fatalf("拼接不对：%v %v", s.book.Bids, s.cover)
 	}
 	s.mu.Unlock()
-	if f.n != 1 {
-		t.Fatalf("应只取一次快照：%d", f.n)
+	if n := f.calls(); n != 1 {
+		t.Fatalf("应只取一次快照：%d", n)
 	}
 	// 断号 → 自动重取
-	f.snap = Snapshot{LastID: 200, Bids: [][2]float64{{98, 3}}, Asks: [][2]float64{{99, 1}}}
+	f.setSnap(Snapshot{LastID: 200, Bids: [][2]float64{{98, 3}}, Asks: [][2]float64{{99, 1}}})
 	r.onDiff(ctx, s, Diff{U: 150, Last: 151, PU: 149})
-	waitFor(t, func() bool { return f.n == 2 })
+	waitFor(t, func() bool { return f.calls() == 2 })
 	waitFor(t, func() bool { s.mu.Lock(); defer s.mu.Unlock(); return !s.sync && s.book.Bids[98] == 3 })
 }
 
