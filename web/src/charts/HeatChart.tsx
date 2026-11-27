@@ -633,7 +633,7 @@ export function HeatChart({ inst, dec, span, layers, floor = 0, chain, own, repl
       const mid = lastMid()
       const curY = yOf(mid)
       const tagGap = 15
-      type Tag = { y: number; p: number; text?: string; color?: string; wall?: HeatWall; line?: string[]; prio: number }
+      type Tag = { y: number; ty?: number; p: number; text?: string; color?: string; wall?: HeatWall; line?: string[]; prio: number }
       const tags: Tag[] = []
       // 叠加项：视野里画线，金额写在价格尺上；视野外放到图外的带子里，点一下把视野扩过去（D83）
       type Chip = { p: number; text: string; color: string; tip: string[] }
@@ -694,12 +694,19 @@ export function HeatChart({ inst, dec, span, layers, floor = 0, chain, own, repl
       tags.sort((a, b) => b.prio - a.prio)
       const placed: Tag[] = []
       const curClear = (y: number) => Math.abs(y - curY) >= 18
-      for (const t of tags) if (curClear(t.y) && placed.every((o) => Math.abs(o.y - t.y) >= tagGap)) placed.push(t)
-      valueScale(g, { x0: P.x0, y0: P.y0, x1: xAxis, y1: P.y1 }, v.pa, v.pb, (x) => fmtNum(x, dec2), { grid: false, avoid: [curY, ...placed.map((t) => t.y), ...(P.ax >= 188 ? [4, 10] : [])] })
+      // 字写在 ty（横线还是画在真实价位 y）。离现价太近的大单原来直接省掉，可顶上那行"上方大单 / 下方大单"
+      // 说的正是离现价最近的那张（11-28 抽查：顶上写 59,807，价格尺上找不到）：字挪到现价标签的外侧，连一小段竖线
+      for (const t of tags) {
+        const ty = !curClear(t.y) && t.wall ? curY + (t.wall.bid ? 18 : -18) : t.y
+        if (curClear(ty) && placed.every((o) => Math.abs((o.ty ?? o.y) - ty) >= tagGap)) placed.push({ ...t, ty })
+      }
+      valueScale(g, { x0: P.x0, y0: P.y0, x1: xAxis, y1: P.y1 }, v.pa, v.pb, (x) => fmtNum(x, dec2), { grid: false, avoid: [curY, ...placed.map((t) => t.ty ?? t.y), ...(P.ax >= 188 ? [4, 10] : [])] })
       const c1 = xAxis + 8
       const cAmt = xAxis + 112, cAge = xAxis + P.ax - 8
-      for (const t of placed) {
-        g.hline(t.y, P.x1 - 6, xAxis + 5, t.color ?? 'rgba(255,255,255,0.7)')
+      for (const t0 of placed) {
+        const t = { ...t0, y: t0.ty ?? t0.y } // 下面写字、悬停都按字的位置
+        g.hline(t0.y, P.x1 - 6, xAxis + 5, t.color ?? 'rgba(255,255,255,0.7)')
+        if (t.y !== t0.y) g.vline(xAxis + 4, Math.min(t0.y, t.y), Math.max(t0.y, t.y), t.color ?? 'rgba(255,255,255,0.7)')
         g.text(fmtNum(t.p, dec2), c1, t.y, { size: 11, color: t.color ?? C.t1, baseline: 'middle', weight: 500 })
         if (t.wall) {
           if (P.ax >= 132) g.text(fmtCompactL(t.wall.usd), P.ax >= 188 ? cAmt : cAge, t.y, { size: 11, color: C.t1, baseline: 'middle', align: 'right' })

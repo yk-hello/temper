@@ -25,6 +25,7 @@
 .ab-spec dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; padding-top: 6px; }
 .ab-spec dl > div { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; min-height: 23px; font-size: 12.5px; box-shadow: inset 0 calc(var(--hair) * -1) 0 var(--rule); }
 .ab-spec dt { color: var(--t3); }
+.ab-ver { margin-left: 16px; color: var(--t3); white-space: nowrap; } /* 版本号（D119）：跟在风险提示后面，不抢眼 */
 .ab-spec dd { margin: 0; color: var(--t2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .ab-spec dd.n { color: var(--t1); font-variant-numeric: tabular-nums; }
 .ab-cta { margin: 6px 0 0; display: flex; justify-content: space-between; gap: 16px; font-size: 11.5px; line-height: 16px; color: var(--t3); }

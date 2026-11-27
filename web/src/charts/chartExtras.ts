@@ -72,7 +72,9 @@ function strokeSeries(g: G, v: (number | null)[], bars: Bar[], i0: number, inter
 
 const compact = (v: number) => {
   const a = Math.abs(v)
-  const s = a >= 1e9 ? `${locDec((a / 1e9).toFixed(2))}B` : a >= 1e6 ? `${locDec((a / 1e6).toFixed(2))}M` : a >= 1e3 ? `${locDec((a / 1e3).toFixed(1))}K` : a >= 1 ? locDec(a.toFixed(2)) : locDec(a.toFixed(4))
+  // 1000 以下按大小留位数（11-28 抽查：订单流的副图里"−452.07"和旁边的"3.5K"写法不一）
+  const s = a >= 1e9 ? `${locDec((a / 1e9).toFixed(2))}B` : a >= 1e6 ? `${locDec((a / 1e6).toFixed(2))}M` : a >= 1e3 ? `${locDec((a / 1e3).toFixed(1))}K`
+    : a >= 100 ? locDec(a.toFixed(0)) : a >= 10 ? locDec(a.toFixed(1)) : a >= 1 ? locDec(a.toFixed(2)) : locDec(a.toFixed(4))
   return v < 0 ? `−${s}` : s
 }
 

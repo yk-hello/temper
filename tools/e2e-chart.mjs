@@ -90,11 +90,15 @@ await p.waitForTimeout(150)
 await p.screenshot({ path: `${OUT}/ct-shapes.png` })
 await p.mouse.click(...px(0.92, 0.5))
 
-// 拖动整条线
+// 拖动整条线：按线现在的位置去抓（画布的 data-shapes）。线按时间、价格记，画完到这里行情一动纵轴就缩放，
+// 线在屏幕上会挪；原来按画的时候的位置去抓，挪了 5 像素就抓空（11-28 回归）
 const before = (await shapes(p))[0]
-await p.mouse.move(...px(0.45, 0.25))
+const onScreen = JSON.parse((await p.locator('.mk-chart .display-body canvas').first().getAttribute('data-shapes')) ?? '[]').find((x) => x.id === before.id)
+const b2 = await box(p)
+const mid = onScreen ? [b2.x + (onScreen.x0 + onScreen.x1) / 2, b2.y + (onScreen.y0 + onScreen.y1) / 2] : px(0.45, 0.25)
+await p.mouse.move(...mid)
 await p.mouse.down()
-await p.mouse.move(...px(0.5, 0.3), { steps: 4 })
+await p.mouse.move(mid[0] + b2.width * 0.05, mid[1] + b2.height * 0.05, { steps: 4 })
 await p.mouse.up()
 const after = (await shapes(p))[0]
 ok(after.a.t > before.a.t && after.b.t > before.b.t && after.a.p !== before.a.p, '拖动整条趋势线')

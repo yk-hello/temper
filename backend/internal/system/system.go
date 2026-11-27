@@ -2,6 +2,8 @@
 package system
 
 import (
+	"qs/internal/buildinfo"
+
 	"context"
 	"encoding/json"
 	"net/http"
@@ -76,6 +78,8 @@ type Runtime struct {
 	HeapMB     float64 `json:"heap_mb"`
 	GcMs       float64 `json:"gc_ms"`
 	UpSec      int64   `json:"up_sec"`
+	Version    string  `json:"version"`          // 版本号（D119），比如 0.1.0、0.1.0+dev
+	Commit     string  `json:"commit,omitempty"` // 发布的镜像才有
 }
 
 func call(f func() int) int {
@@ -121,7 +125,8 @@ func (s *Service) Now(ctx context.Context) Snapshot {
 	}
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
-	out.Run = Runtime{Goroutines: runtime.NumGoroutine(), HeapMB: float64(ms.HeapAlloc) / 1048576, GcMs: float64(ms.PauseNs[(ms.NumGC+255)%256]) / 1e6, UpSec: int64(time.Since(s.Started).Seconds())}
+	out.Run = Runtime{Goroutines: runtime.NumGoroutine(), HeapMB: float64(ms.HeapAlloc) / 1048576, GcMs: float64(ms.PauseNs[(ms.NumGC+255)%256]) / 1e6, UpSec: int64(time.Since(s.Started).Seconds()),
+		Version: buildinfo.Version(), Commit: buildinfo.Commit}
 	return out
 }
 

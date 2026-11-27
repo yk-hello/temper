@@ -3,6 +3,7 @@ package market
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -29,6 +30,8 @@ type Binance struct {
 	BaseURL string // 默认 wss://fstream.binance.com；现货默认 wss://stream.binance.com:443（BINANCE_SPOT_WS_URL 可改）
 	Spot    bool   // 现货：一条线路，地址和格式都不同
 	Log     *slog.Logger
+	// Idle 多久一条消息都没收到就当连接已经死了、断开重连（0 = idleDefault）。测试时调短
+	Idle time.Duration
 
 	mu    sync.Mutex
 	extra []string                   // 运行中加进来的品种（用户点开了别的币）
@@ -82,6 +85,10 @@ func (b *Binance) subscribeLocked(c *websocket.Conn, line string, symbols []stri
 }
 
 const binanceVenue = "binance-usdm"
+
+// idleDefault 每条线路每秒都有好几条消息（标记价格、24 小时统计每秒一条，盘口每 100 毫秒），10 秒一条都没有就是连接死了。
+// 11-28 前是 60 秒：电脑的网络断一下（不报错、只是没数据），价格在页面上停一分钟才重连
+const idleDefault = 10 * time.Second
 
 func (b *Binance) Name() string { return binanceVenue }
 
@@ -204,11 +211,18 @@ func (b *Binance) session(ctx context.Context, name, url string, sink Sink) erro
 	lag := &lagMeter{}
 	defer sink.UpdateStatus(func(s *SourceStatus) { delete(s.Lag, name) })
 	for {
-		// 超过 60 秒一条消息都没有，视为假死，主动重连
-		readCtx, cancelRead := context.WithTimeout(ctx, 60*time.Second)
+		// 太久一条消息都没有：视为假死，主动重连
+		idle := b.Idle
+		if idle <= 0 {
+			idle = idleDefault
+		}
+		readCtx, cancelRead := context.WithTimeout(ctx, idle)
 		_, data, err := c.Read(readCtx)
 		cancelRead()
 		if err != nil {
+			if ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
+				return fmt.Errorf("%v 没有收到消息", idle)
+			}
 			return err
 		}
 		if ev, ok := b.parse(data); ok {

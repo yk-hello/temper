@@ -1123,7 +1123,6 @@ export const zh = {
   'heat.span.300000': "5分",
   'heat.span.1800000': "30分",
   'heat.span.7200000': "2时",
-  'heat.span.86400000': "24时",
   'heat.spanLabel': "显示时长",
   'heat.layers': "叠加 {n}",
   'heat.layer.events': "疑似行为（撤单、吸收、冰山、扫单、大单）",
@@ -3159,6 +3158,13 @@ export const zh = {
   'mk.down.spotTail': "，正在自动重连。合约行情正常；现货价格在恢复前不会更新。",
   'tab.acct': "账户",
   'tab.acctLabel': "账户记录",
+  'sy.ver': "版本",
+  'ver.rel': "v{v}",
+  'ver.dev': "v{v} 之后的开发版",
+  'heat.span.86400000': "1日",
+  'mk.stepNote': "逐笔 · 最近 5 分钟",
+  'chart.noTradesS': "{n} 秒没有收到成交",
+  'chart.noTradesM': "{n} 分钟没有收到成交",
 } as const
 
 export type Key = keyof typeof zh

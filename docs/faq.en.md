@@ -111,17 +111,31 @@ Yes, but first: set up HTTPS (a reverse proxy in front), configure outgoing mail
 ## Other
 
 **Where is the data? How do I back it up?**
-In two Docker volumes: `qs-db` (database) and `qs-data` (master key). Back up the database:
+In two Docker volumes: `qs-db` (database) and `qs-data` (master key). Back up the database (with `--clean`, a restore first clears the current tables) and the master key:
 
 ```bash
-docker compose exec db pg_dump -U qs qs > backup.sql
+docker compose exec db pg_dump -U qs --clean --if-exists qs > backup.sql
+docker compose cp backend:/data/master.key .
 ```
 
 **How do I remove everything?**
 `docker compose down -v` deletes the volumes too (accounts, paper records and stored keys are gone for good).
 
-**How do I upgrade?**
-Pull the new code, then `docker compose up -d` (it rebuilds from the current code every time; about half a minute from cache when nothing changed). Database tables are migrated automatically.
+**Upgrading and rolling back**
+Every release is on the GitHub Releases page, tagged like `v0.1.0`; `CHANGELOG.md` lists what changed. To see which version you run: the bottom of the System page, or `version` in `http://localhost:8080/api/health`. Upgrading and rolling back never touch `.env` or the Docker volumes; database upgrades only add tables and columns, never remove anything.
+
+Upgrade to a release (back up first):
+
+```bash
+git fetch --tags
+git checkout v0.1.0        # the version you want
+docker compose up -d       # rebuilds that version, from half a minute to a few minutes
+```
+
+- Roll back to the previous release: the same commands with the previous version after `git checkout`. Older versions keep working with the upgraded database; your data stays.
+- Roll back data too, to before the upgrade: `docker compose stop backend`, then `docker compose exec -T db psql -U qs -d qs < backup.sql`, then `docker compose up -d`. Anything recorded after the upgrade is gone.
+- To always run the latest code (unreleased, may include changes still being tested): `git checkout main && git pull && docker compose up -d`.
+- If `git checkout` complains about local changes, you probably edited a file such as `compose.yaml`. Put your settings in `.env` instead of editing files in the repository.
 
 **I found a problem or want a feature.**
 See [CONTRIBUTING.md](../CONTRIBUTING.md). Please report security issues privately to the maintainers, not in public.

@@ -358,6 +358,8 @@ export default function Market() {
               </div>
               {mode === 'candle' && <div className="head-iv"><Seg label={t('mk.interval')} options={ivOpts} value={ivKey} onChange={pickIv} /></div>}
               {mode === 'flow' && <div className="head-iv"><Seg label={t('mk.interval')} options={ivOpts.filter((x) => x.value !== '1s')} value={iv.value} onChange={pickIv} /></div>}
+              {/* 阶梯线画的是最近 5 分钟的逐笔成交（下面 Scope 的 span，打开时先用 1 秒 K 线补上），没有周期可选；在周期按钮的位置写明（11-28 用户："阶梯线的时间选择是不是没有了？"） */}
+              {mode === 'step' && <div className="head-iv"><span className="mk-step-note" data-step-note>{t('mk.stepNote')}</span></div>}
               <button className="icon-btn" onClick={() => lay.toggleMax('chart')} title={t(lay.max ? 'mk.restore' : 'mk.maximize', { k: hotLabel(hotKey('max')) })} aria-label={t(lay.max ? 'mk.restore' : 'mk.maximize', { k: hotLabel(hotKey('max')) })}>
                 <MaxIcon on={!!lay.max} />
               </button>

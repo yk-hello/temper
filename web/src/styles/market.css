@@ -45,6 +45,7 @@
 
 /* 图表标题栏里的周期（2026-11-23 起是分段按钮，和左边的图种、链上爆仓同一种样子；放不下时自己横向滑动） */
 .mk-chart .head-iv { display: flex; min-width: 0; }
+.mk-step-note { align-self: center; padding: 0 4px; font-size: 12px; line-height: 16px; color: var(--t3); white-space: nowrap; }
 /* 图表这一列窄的时候（1280–1440 宽的屏幕，盘口和下单区占掉了地方）：先去掉副标题，再让周期按钮横向滑动，标题栏不往外挤 */
 /* 容器设在标题栏上，不设在整个图表面板上：面板成了容器，里面 position: fixed 的东西（右键菜单、图上的卡片）会以面板为准、跑偏被裁掉 */
 .mk-chart .display-head { container: chart / inline-size; }

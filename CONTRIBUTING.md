@@ -70,6 +70,8 @@ The interface check scripts are `tools/e2e-*.mjs`: the top of each script says w
 - Any new text in the interface needs both Chinese (`web/src/i18n/zh.ts`) and English (`en.ts`).
 - Money calculations use Decimal and follow the exchange's rules; anything that differs from Binance must be stated in the interface or the docs.
 - Never commit keys, `.env` files or real account details.
+- Database changes only add: new tables, and new columns that are nullable or have a default. No dropping, renaming or retyping tables and columns, so that going back to the previous release keeps working with an upgraded database. To retire something, stop using it in one release and remove it at least one release later. `backend/internal/db/migrate_test.go` checks this.
+- Note user-visible changes under "Unreleased" in [CHANGELOG.md](CHANGELOG.md). The version lives in `backend/internal/buildinfo/VERSION`; between releases it reads like `0.1.0+dev`.
 
 ## Reporting security issues
 

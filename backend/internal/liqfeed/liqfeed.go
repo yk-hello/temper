@@ -6,6 +6,7 @@ package liqfeed
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -92,6 +93,18 @@ func dial(ctx context.Context, u string) (*websocket.Conn, error) {
 }
 
 // ping 每隔一段时间发一条心跳（两家都要求客户端主动发）。
+// readIdle 读一条消息。太久一条都没有（连 ping 的回应都没有）就当连接已经死了：返回错误，外面重连。
+// 11-28 前不设时限，连接要是悄悄断掉（不报错、只是不来数据）就一直等下去
+func readIdle(ctx context.Context, c *websocket.Conn, idle time.Duration) ([]byte, error) {
+	rctx, cancel := context.WithTimeout(ctx, idle)
+	defer cancel()
+	_, raw, err := c.Read(rctx)
+	if err != nil && ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
+		return nil, fmt.Errorf("%v 没有收到消息", idle)
+	}
+	return raw, err
+}
+
 func ping(ctx context.Context, c *websocket.Conn, every time.Duration, msg string) {
 	t := time.NewTicker(every)
 	defer t.Stop()
@@ -139,7 +152,8 @@ func (f *Feed) bybit(ctx context.Context) error {
 	go ping(sctx, c, 20*time.Second, `{"op":"ping"}`)
 	f.set("bybit", true)
 	for {
-		_, raw, err := c.Read(ctx)
+		raw, err := readIdle(ctx, c, 50*time.Second) // 每 20 秒 ping 一次，对方会回
+
 		if err != nil {
 			return err
 		}
@@ -248,7 +262,8 @@ func (f *Feed) okx(ctx context.Context) error {
 	go ping(sctx, c, 25*time.Second, "ping")
 	f.set("okx", true)
 	for {
-		_, raw, err := c.Read(ctx)
+		raw, err := readIdle(ctx, c, 60*time.Second) // 每 25 秒 ping 一次，对方回 pong
+
 		if err != nil {
 			return err
 		}

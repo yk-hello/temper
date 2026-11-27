@@ -280,7 +280,7 @@ const lineNow = async (k, id) => JSON.parse((await cv.getAttribute('data-tlines'
 // 0.4% 甚至 0.2% 都在画面外面）就撤掉挂近一点。11-28：原来拖线前还有一道"离现价不到 0.3% 就撤掉、按 0.4% 重挂"，
 // 把这里好不容易挂在画面里的单又挂回画面外面，图上没线可拖——"拖挂单线"时过时不过就是这个
 const placeVisible = async () => {
-  for (const pct of [0.996, 0.998, 0.999, 0.9995]) {
+  for (const pct of [0.996, 0.998, 0.999, 0.9995, 0.9998, 0.9999]) { // 11-28：图的价格范围窄到上下 0.15% 时，0.05% 也挂在画面外
     mk = await mark()
     const o = (await inPage('POST', `/api/trade/${acctId}/orders`, { instrument: 'BTC-PERP', side: 'buy', type: 'limit', price: t1(mk * pct), qty: '0.01' })).body
     if (!o?.id) continue

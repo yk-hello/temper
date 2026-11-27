@@ -102,7 +102,8 @@ export function useMarket(bookInstrument?: string) {
   }, [bookInstrument])
 
   // 阶梯线一打开就有最近几分钟（2026-11-15 走查时发现：原来只从打开页面那一刻开始攒，刚打开只有几秒）：
-  // 选中品种时取最近 300 根 1 秒 K 线的收盘价，补在已有的点前面，之后接着用实时推送
+  // 选中品种时取最近 300 根 1 秒 K 线的收盘价，补在已有的点前面，之后接着用实时推送。
+  // 300 秒 = 交易页阶梯线显示的 5 分钟（Market.tsx 给 Scope 的 span），图上写的"逐笔 · 最近 5 分钟"对得上
   useEffect(() => {
     const inst = bookInstrument
     if (!inst) return

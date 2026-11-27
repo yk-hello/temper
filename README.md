@@ -41,7 +41,7 @@ The first run builds locally and takes a few minutes. Then open http://localhost
 - **No keys or config files needed.** Market data comes from Binance's public feed; sign-up needs only an account name and a password and you are signed in right away (you can link an email later on the Account page to recover your password and get alerts); every account comes with a 10,000 USDT paper account; paper balances have no limit and can be topped up, reduced or reset at any time, and fees can be set to match your tier.
 - The first account registered owns the install: only it can open the System page behind the gear at the top right (all accounts, global settings, activity log). After it signs up, nobody else can sign up by default (safe on a cloud server too); to add accounts, use the System page or open sign-up there. Other accounts only see their own data.
 - If Binance is unreachable where you are (the top bar keeps saying "connecting"), create a `.env` file containing `MARKET_SOURCE=sim` and run the command again to explore with simulated prices.
-- Stop: `docker compose down` (data is kept). Upgrade: `git pull`, then `docker compose up -d` (it always rebuilds from the current code).
+- Stop: `docker compose down` (data is kept). To upgrade to a new release or go back to the previous one, see "Upgrading and rolling back" in the [FAQ](docs/faq.en.md) (data and settings are kept).
 
 **On a cloud server**: by default the web page only opens on the server itself (nothing is exposed, which is the safest setup). Open an SSH tunnel from your own computer:
 

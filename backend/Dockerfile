@@ -4,7 +4,9 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/qs ./cmd/qs
+# 发布的镜像由 release.yml 传入提交号，"系统"页和 /api/health 里能看到（D119）；自己构建时为空
+ARG QS_COMMIT=
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X qs/internal/buildinfo.Commit=${QS_COMMIT}" -o /out/qs ./cmd/qs
 
 # 运行
 FROM alpine:3.20

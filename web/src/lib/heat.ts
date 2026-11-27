@@ -82,6 +82,12 @@ export function usdCell(u: number): number {
   return Math.min(255, Math.max(1, Math.round((Math.log(u / Q_LO) / Math.log(Q_HI / Q_LO)) * 255)))
 }
 
+/** 和 usdCell 一样，不取整（画柱子高度用，动起来不一格一格地跳） */
+export function usdCellF(u: number): number {
+  if (u <= Q_LO) return 0
+  return Math.min(255, (Math.log(u / Q_LO) / Math.log(Q_HI / Q_LO)) * 255)
+}
+
 /** 频谱配色：青（默认，D85 第 11 条）或灰（D82）。两种都是越亮金额越大 */
 export type HeatRamp = 'gray' | 'teal'
 let ramp: HeatRamp = (() => { try { return localStorage.getItem('qs.heatRamp') === 'gray' ? 'gray' : 'teal' } catch { return 'teal' } })()

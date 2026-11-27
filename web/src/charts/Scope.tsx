@@ -119,6 +119,8 @@ export interface Whale {
 const AXIS = 68
 const BOTTOM = 26
 const PAD_BARS = 4 // 最新一根右边留几根的空
+// 阶梯线：页面开着时每秒至少有一个点（useMarket），两个点隔了 5 秒以上就是这段时间没收到成交
+const STEP_GAP = 5000
 const BAR_KEY = 'qs.barW'
 const FP_BAR_KEY = 'qs.fpBarW'
 const barMax = (fp: boolean) => (fp ? 200 : 40)
@@ -359,20 +361,43 @@ export function Scope({ mode, candles, points, interval = 60_000, span: spanProp
     } else if (vp.length) {
       const lw = Math.max(1, Math.round(g.kx))
       const off = lw % 2 ? 0.5 : 0
+      // 两个点之间隔了 STEP_GAP 以上：这段时间没有收到成交（断网，或者这个币一直没人成交）。画成暗的虚线、悬停写明几秒，
+      // 不画成和平时一样的实线（11-28：电脑断网 62 秒，被画成一条平线，像价格一分钟没动）
+      const gaps: { x0: number; x1: number; y: number; cx0: number; cx1: number; cy: number; ms: number }[] = []
       ctx.beginPath()
-      let py = 0
+      let py = 0, pxl = 0, pt = 0, pv = 0
       vp.forEach((p, i) => {
         const x = Math.round(g.X(Math.max(P.x0, xOf(p.t)))) + off
         const y = Math.round(g.Y(yOf(p.v))) + off
         if (i === 0) ctx.moveTo(x, y)
-        else { ctx.lineTo(x, py); ctx.lineTo(x, y) }
-        py = y
+        else if (p.t - pt > STEP_GAP) {
+          gaps.push({ x0: pxl, x1: x, y: py, cx0: Math.max(P.x0, xOf(pt)), cx1: xOf(p.t), cy: yOf(pv), ms: p.t - pt })
+          ctx.moveTo(x, py)
+          ctx.lineTo(x, y)
+        } else { ctx.lineTo(x, py); ctx.lineTo(x, y) }
+        py = y; pxl = x; pt = p.t; pv = p.v
       })
-      ctx.lineTo(Math.round(g.X(xOf(tb))) + off, py)
+      const xEnd = Math.round(g.X(xOf(tb))) + off
+      if (tb - pt > STEP_GAP) gaps.push({ x0: pxl, x1: xEnd, y: py, cx0: Math.max(P.x0, xOf(pt)), cx1: xOf(tb), cy: yOf(pv), ms: tb - pt }) // 现在还没收到
+      else ctx.lineTo(xEnd, py)
       ctx.strokeStyle = C.t1
       ctx.lineWidth = lw
       ctx.lineJoin = 'miter'
       ctx.stroke()
+      if (gaps.length) {
+        ctx.save()
+        ctx.setLineDash([g.px(3), g.px(3)])
+        ctx.strokeStyle = C.t3
+        ctx.beginPath()
+        for (const s of gaps) { ctx.moveTo(s.x0, s.y); ctx.lineTo(s.x1, s.y) }
+        ctx.stroke()
+        ctx.restore()
+        for (const s of gaps) {
+          if (s.cx1 - s.cx0 < 4) continue
+          const sec = Math.round(s.ms / 1000)
+          addHint(s.cx0, s.cy - 8, s.cx1, s.cy + 8, sec < 120 ? tr('chart.noTradesS', { n: sec }) : tr('chart.noTradesM', { n: Math.round(sec / 60) }))
+        }
+      }
     }
     ctx.restore()
 
@@ -395,6 +420,11 @@ export function Scope({ mode, candles, points, interval = 60_000, span: spanProp
     if (panning) {
       const live0 = shapeDrag.current?.now
       for (const sh of shapesRef.current) drawShape(g, live0 && live0.id === sh.id ? live0 : sh, proj, shapeSel.current === sh.id, shapeHot.current === sh.id)
+      // 给自动检查用：画线现在在画布上的位置（只在变化时写）。线按时间、价格记，行情一动纵轴就缩放，屏幕上的位置跟着变
+      // （11-28 回归："拖动整条趋势线"按画的时候的位置去抓，线已经挪了 5 像素，没抓住）
+      const sl = JSON.stringify(shapesRef.current.map((sh) => ({ id: sh.id, k: sh.kind, x0: Math.round(xOf(sh.a.t)), y0: Math.round(yOf(sh.a.p)),
+        ...(sh.b ? { x1: Math.round(xOf(sh.b.t)), y1: Math.round(yOf(sh.b.p)) } : {}) })))
+      if (ref.current && ref.current.dataset.shapes !== sl) ref.current.dataset.shapes = sl
       const dr = draft.current
       if (dr && dr.kind !== 'measure') drawShape(g, { id: 'draft', kind: dr.kind, a: dr.a, b: dr.b }, proj, false, true)
       const ms = dr?.kind === 'measure' ? dr : measure.current

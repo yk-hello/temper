@@ -2,6 +2,8 @@
 package api
 
 import (
+	"qs/internal/buildinfo"
+
 	"context"
 	"encoding/json"
 	"log/slog"
@@ -125,6 +127,7 @@ type health struct {
 	UptimeS  int64               `json:"uptime_s"`
 	ServerTs int64               `json:"server_ts"`
 	RTT      *float64            `json:"exchange_rtt_ms,omitempty"`
+	Version  string              `json:"version"` // 版本号（D119）
 }
 
 // access 这个请求：登录了吗、开启服务了吗。没配置时一律没有（默认关着）。
@@ -144,7 +147,7 @@ func (s *Server) call(fn func(string) (any, bool), r *http.Request) (any, bool) 
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	st := s.Hub.Status()
-	h := health{Status: "ok", Brand: s.BrandName, DB: s.DBStatus(), Market: st,
+	h := health{Status: "ok", Brand: s.BrandName, Version: buildinfo.Version(), DB: s.DBStatus(), Market: st,
 		UptimeS: int64(time.Since(s.Started).Seconds()), ServerTs: time.Now().UnixMilli()}
 	if s.ExchangeRTT != nil {
 		if v, ok := s.ExchangeRTT(); ok {

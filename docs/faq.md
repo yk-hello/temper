@@ -111,17 +111,31 @@ docker compose cp backend:/data/master.key ./master.key.backup
 ## 其他
 
 **数据在哪？怎么备份？**
-都在 Docker 的两个数据卷里：`qs-db`（数据库）和 `qs-data`（主密钥）。备份数据库：
+都在 Docker 的两个数据卷里：`qs-db`（数据库）和 `qs-data`（主密钥）。备份数据库（带 `--clean`：恢复时先清掉现在的表再写回）和主密钥：
 
 ```bash
-docker compose exec db pg_dump -U qs qs > backup.sql
+docker compose exec db pg_dump -U qs --clean --if-exists qs > backup.sql
+docker compose cp backend:/data/master.key .
 ```
 
 **怎么彻底删掉？**
 `docker compose down -v` 会连数据卷一起删（账号、模拟盘记录、存的密钥都没了，找不回来）。
 
-**怎么升级？**
-拉新代码，然后 `docker compose up -d`（每次启动都会按现在的代码构建，没改动时用缓存，半分钟左右）。数据库的表会自动升级。
+**升级和退回**
+每个版本在 GitHub 的 Releases 页面上，标签是 `v0.1.0` 这样，改了什么见 `CHANGELOG.md`。现在用的是哪个版本："系统"页底部，或者打开 `http://localhost:8080/api/health` 看 `version`。升级、退回都不动 `.env` 和数据卷；数据库升级只加表、加字段，不删东西。
+
+升级到某个版本（先备份）：
+
+```bash
+git fetch --tags
+git checkout v0.1.0        # 换成要用的版本
+docker compose up -d       # 按这个版本的代码重新构建，半分钟到几分钟
+```
+
+- 退回上一个版本：同样的命令，`git checkout` 后面换成上一个版本号。旧版本可以接着用升级过的数据库，数据都在。
+- 连数据一起退回到升级前：`docker compose stop backend`，再 `docker compose exec -T db psql -U qs -d qs < backup.sql`，然后 `docker compose up -d`。升级以后新产生的记录会没有。
+- 想一直用最新的代码（还没发布、可能有没测完的改动）：`git checkout main && git pull && docker compose up -d`。
+- `git checkout` 报"本地有改动"：多半是改过 `compose.yaml` 这类文件。自己的设置写在 `.env` 里，不要改仓库里的文件。
 
 **发现了问题，或者想加功能。**
 见 [参与开发](../CONTRIBUTING.zh-CN.md)。安全问题请私下联系维护者，不要公开提。

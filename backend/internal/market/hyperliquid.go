@@ -99,12 +99,13 @@ func (h *Hyperliquid) session(ctx context.Context, sink Sink) error {
 		}
 	}()
 	for {
-		rctx, cancel := context.WithTimeout(ctx, 90*time.Second)
+		// 盘口、成交很密，每 30 秒还有一次 ping 的回应：20 秒一条都没有就是连接死了（11-28 前 90 秒）
+		rctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 		_, data, err := c.Read(rctx)
 		cancel()
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				return errors.New("90 秒没有消息")
+				return errors.New("20 秒没有消息")
 			}
 			return err
 		}

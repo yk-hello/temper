@@ -84,7 +84,7 @@ func (b *BinanceDepth) session(ctx context.Context, connected func(), diff func(
 	c.SetReadLimit(4 << 20)
 	connected()
 	for {
-		read, cancelRead := context.WithTimeout(ctx, 15*time.Second)
+		read, cancelRead := context.WithTimeout(ctx, 10*time.Second) // 盘口每 100 毫秒一次，10 秒没有就是连接死了（11-28 前 15 秒）
 		_, data, err := c.Read(read)
 		cancelRead()
 		if err != nil {

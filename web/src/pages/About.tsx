@@ -10,11 +10,12 @@ import { fmtNum } from '../charts/scale'
 import '../styles/about.css'
 import { numLocale } from '../lib/tz'
 import { BRAND } from '../lib/brand'
+import { verText } from '../lib/version'
 
 const COINS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE']
 const NAMES: Record<string, string> = { 'binance-usdm': 'Binance', 'binance-spot': 'Binance', hyperliquid: 'Hyperliquid', bybit: 'Bybit', okx: 'OKX' }
 
-interface Sys { lines: { venue: string; rate: number; ms: number }[]; polls: { id: string; n?: number }[]; heat: number }
+interface Sys { lines: { venue: string; rate: number; ms: number }[]; polls: { id: string; n?: number }[]; heat: number; runtime?: { version?: string } }
 
 export default function About() {
   const t = useT()
@@ -97,7 +98,7 @@ export default function About() {
           <div><dt>{t('ab.s.lag')}</dt><dd>{t('ab.s.lagD')}</dd><dd className="n">{primary ? `${primary.ms < 1 ? '<1' : primary.ms.toFixed(0)} ms` : '—'}</dd></div>
           <div><dt>{t('ab.s.trade')}</dt><dd>{t('ab.s.tradeD')}</dd><dd className="n">{t('ab.s.tradeN')}</dd></div>
         </dl>
-        <p className="ab-cta">{t('ab.risk')}</p>
+        <p className="ab-cta">{t('ab.risk')}{sys?.runtime?.version && <span className="ab-ver" data-ab-ver>{t('sy.ver')} {verText(sys.runtime.version)}</span>}</p>
       </section>
     </div>
   )

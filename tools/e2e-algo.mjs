@@ -245,13 +245,22 @@ const domRows = await p.locator('[data-dom-buy]').count()
 await p.locator('[data-dom-buy]').nth(domRows - 4).click()
 ok(await until(async () => (await view()).orders.length === 1), '打开后点一下挂限价单')
 await p.screenshot({ path: `${OUT}/algo-dom.png` })
-// 梯子跟着行情滚：一次没点中（那一档刚好滚走）就再找再点，最多 15 秒
+// 梯子跟着行情滚：一次没点中（那一档刚好滚走）就再找再点。行情走远、自己那张单整个滚出梯子时（11-28 回归：
+// 15 秒里涨了十几美元，单子在第 9 行，一直点不到），撤掉、在离现价最近的那一档重挂，再去点它。最多 25 秒
 ok(await until(async () => {
-  if ((await view()).orders.length === 0) return true
+  const v = await view()
+  if (v.orders.length === 0) return true
+  if (await p.locator('[data-dom-own]').count() === 0) {
+    console.log('  （自己的单滚出了梯子：撤掉，在最近的一档重挂）')
+    for (const o of v.orders) await call('DELETE', `/api/trade/${A}/orders/${o.id}`)
+    await p.locator('[data-dom-buy]').first().click({ timeout: 1000 }).catch(() => {})
+    await p.waitForTimeout(500)
+    return false
+  }
   await p.locator('[data-dom-own]').first().click({ timeout: 1000 }).catch(() => {})
   await p.waitForTimeout(400)
   return (await view()).orders.length === 0
-}, 15000), '点自己的单撤掉')
+}, 25000), '点自己的单撤掉')
 await p.locator('.mk-book .display-head button, .mk-book .display-head [role=radio]').filter({ hasText: '盘口' }).first().click()
 // 持仓对话框
 await call('POST', `/api/trade/${A}/orders`, { instrument: INST, side: 'buy', type: 'market', qty: '0.01' })

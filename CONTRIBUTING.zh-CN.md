@@ -70,6 +70,8 @@ python tools/dev/licenses.py
 - 界面上新加的字，中文（`web/src/i18n/zh.ts`）和英文（`en.ts`）都要有。
 - 和钱有关的计算用 Decimal，规则以交易所为准；和币安不一样的地方要在界面或文档里写明。
 - 不要提交任何密钥、`.env`、真实的账户信息。
+- 数据库改动只加不删：可以建新表、加新字段（新字段要么可以为空、要么有默认值）；不删表、删字段，不改名、不改类型。这样升级以后退回上一个版本，旧版还能接着用升级过的库。要去掉的东西先在一个版本里停用，至少隔一个版本再删。`backend/internal/db/migrate_test.go` 会检查。
+- 用户看得到的改动记在 [CHANGELOG.md](CHANGELOG.md) 的"未发布"一节。版本号在 `backend/internal/buildinfo/VERSION`，两次发布之间是 `0.1.0+dev` 这样。
 
 ## 报告安全问题
 

@@ -6,13 +6,14 @@ import { useT, useLang } from '../lib/i18n'
 import { C } from '../charts/scale'
 import '../styles/system.css'
 import { locDec, numLocale } from '../lib/tz'
+import { verText } from '../lib/version'
 
 interface Line { venue: string; rate: number; trades: number; depth: number; marks: number; ms: number; total: number; last: number }
 interface Poll { id: string; ms?: number; ok: boolean; at?: number; n?: number }
 interface Snap {
   t: number; lines: Line[]; polls: Poll[]; up: Record<string, boolean>; reconnects: number; clients: number; heat: number; bots: number; algos: number; follows: number; signals_min: number
   db?: { ping_ms: number; busy: number; total: number }
-  runtime: { goroutines: number; heap_mb: number; gc_ms: number; up_sec: number }
+  runtime: { goroutines: number; heap_mb: number; gc_ms: number; up_sec: number; version?: string; commit?: string }
 }
 
 const NAMES: Record<string, string> = { hyperliquid: 'Hyperliquid', bybit: 'Bybit', okx: 'OKX', sim: 'SIM' }
@@ -67,6 +68,7 @@ export function SystemBody() {
     <div className="sy">
       <div className="sy-map"><canvas ref={ref} /></div>
       <footer className="sy-strip">
+        <span data-sy-ver title={run?.commit ? `commit ${run.commit.slice(0, 7)}` : undefined}><i>{t('sy.ver')}</i><b>{run?.version ? verText(run.version) : '—'}</b></span>
         <span><i>{t('sy.up')}</i><b>{run ? fmtUp(run.up_sec) : '—'}</b></span>
         <span><i>{t('sy.reconnects')}</i><b>{snap?.reconnects ?? '—'}</b></span>
         <span><i>{t('sy.goroutines')}</i><b>{run?.goroutines ?? '—'}</b></span>
