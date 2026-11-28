@@ -8,6 +8,9 @@ Each release is tagged `vX.Y.Z` on GitHub. To upgrade, stay on a version or go b
 
 ## [未发布 / Unreleased]
 
+- 网页镜像 `qs-web` 的打包（`npm ci`、`vite build`）只在构建机器自己的架构上跑一次，再放进各架构的 nginx 镜像。v0.1.0 发布时 arm64 那一路在模拟环境里打包，6 小时没跑完被 GitHub 停掉，所以 v0.1.0 只有后端镜像 `qs-backend`，没有 `qs-web`；从源码构建（`docker compose up -d`）不受影响。
+  The web image `qs-web` now runs its build step (`npm ci`, `vite build`) once on the build machine's own architecture and copies the result into each architecture's nginx image. For v0.1.0 the arm64 build ran under emulation and was stopped by GitHub after 6 hours, so v0.1.0 has the backend image `qs-backend` but no `qs-web`; building from source (`docker compose up -d`) is unaffected.
+
 ## [0.1.0] - 2026-11-28
 
 第一个正式版本。之前没有版本号，到今天为止的全部内容算 0.1.0。
