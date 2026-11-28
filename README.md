@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-A self-hosted workstation for crypto perpetual futures: live market data, a realistic paper-trading engine, backtesting, trade review, and optional order routing to your own Binance account. Built for individuals and small teams who want to test their own strategies.
+A self-hosted workstation for crypto perpetual futures: live market data, a realistic paper-trading engine, backtesting, trade review, and optional order routing to your own Binance account. Built for individuals who want to test their own strategies.
 
 ![Temper in 36 seconds: live market data, paper trading, your own strategy, backtesting, replay practice, risk rules](docs/images/temper-loop.webp)
 
